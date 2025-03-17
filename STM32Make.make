@@ -75,13 +75,26 @@ endif
 ######################################
 # C sources
 C_SOURCES =  \
+Core/Src/config_options.c \
+Core/Src/deca_device.c \
+Core/Src/deca_mutex.c \
+Core/Src/deca_sleep.c \
+Core/Src/deca_spi.c \
+Core/Src/example_info.c \
+Core/Src/get_msg_from_anchors2.c \
 Core/Src/gpio.c \
 Core/Src/main.c \
+Core/Src/myDWM3000.c \
+Core/Src/myFunctions.c \
+Core/Src/port.c \
+Core/Src/shared_functions.c \
+Core/Src/spi.c \
 Core/Src/stm32f3xx_hal_msp.c \
 Core/Src/stm32f3xx_it.c \
 Core/Src/syscalls.c \
 Core/Src/sysmem.c \
 Core/Src/system_stm32f3xx.c \
+Core/Src/tim.c \
 Core/Src/usart.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_cortex.c \
@@ -96,6 +109,10 @@ Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_pwr.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_pwr_ex.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_rcc.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_rcc_ex.c \
+Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_spi.c \
+Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_spi_ex.c \
+Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_tim.c \
+Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_tim_ex.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_uart.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_uart_ex.c
 

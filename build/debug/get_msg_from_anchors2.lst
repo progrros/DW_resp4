@@ -1,0 +1,2237 @@
+ARM GAS  /tmp/ccMAsx9I.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"get_msg_from_anchors2.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.rodata.get_msg_from_anchors.str1.4,"aMS",%progbits,1
+  18              		.align	2
+  19              	.LC0:
+  20 0000 4745545F 		.ascii	"GET_MSG_FROM_ANCHORS v2.0\000"
+  20      4D53475F 
+  20      46524F4D 
+  20      5F414E43 
+  20      484F5253 
+  21 001a 0000     		.align	2
+  22              	.LC1:
+  23 001c 494E4954 		.ascii	"INIT FAILED     \000"
+  23      20464149 
+  23      4C454420 
+  23      20202020 
+  23      00
+  24 002d 000000   		.align	2
+  25              	.LC2:
+  26 0030 434F4E46 		.ascii	"CONFIG FAILED     \000"
+  26      49472046 
+  26      41494C45 
+  26      44202020 
+  26      202000
+  27              		.global	__aeabi_d2f
+  28              		.section	.text.get_msg_from_anchors,"ax",%progbits
+  29              		.align	1
+  30              		.global	get_msg_from_anchors
+  31              		.arch armv7e-m
+  32              		.syntax unified
+  33              		.thumb
+  34              		.thumb_func
+  35              		.fpu fpv4-sp-d16
+  37              	get_msg_from_anchors:
+  38              	.LFB133:
+  39              		.file 1 "Core/Src/get_msg_from_anchors2.c"
+   1:Core/Src/get_msg_from_anchors2.c **** /*! ----------------------------------------------------------------------------
+   2:Core/Src/get_msg_from_anchors2.c ****  *  @file    ds_twr_responder_sts.c
+   3:Core/Src/get_msg_from_anchors2.c ****  *  @brief   Double-sided two-way ranging (DS TWR) responder example code
+   4:Core/Src/get_msg_from_anchors2.c ****  *
+   5:Core/Src/get_msg_from_anchors2.c ****  *           This is a simple code example which acts as the responder in a DS TWR distance measure
+   6:Core/Src/get_msg_from_anchors2.c ****  *           message (recording the RX time-stamp of the poll) expected from the "ds_twr_initiator_
+   7:Core/Src/get_msg_from_anchors2.c ****  *           then sends a "response" message to complete the exchange. The response message contain
+ARM GAS  /tmp/ccMAsx9I.s 			page 2
+
+
+   8:Core/Src/get_msg_from_anchors2.c ****  *           including the calculated/predicted TX time-stamp for the response message itself. The 
+   9:Core/Src/get_msg_from_anchors2.c ****  *           works out the time-of-flight over-the-air and, thus, the estimated distance between th
+  10:Core/Src/get_msg_from_anchors2.c ****  *
+  11:Core/Src/get_msg_from_anchors2.c ****  *           This example utilises the 802.15.4z STS to accomplish secure timestamps between the in
+  12:Core/Src/get_msg_from_anchors2.c ****  *           is part of the STS IV used to generate the scrambled timestamp sequence (STS) in the t
+  13:Core/Src/get_msg_from_anchors2.c ****  *           receiver. This count normally advances by 1 for every 1024 chips (~2�s) of STS in BP
+  14:Core/Src/get_msg_from_anchors2.c ****  *           in HPRF mode. If both devices (initiator and responder) have count values that are syn
+  15:Core/Src/get_msg_from_anchors2.c ****  *           result in secure timestamps which can be used to calculate distance. If not, then the 
+  16:Core/Src/get_msg_from_anchors2.c ****  *           In this example, the initiator will send a plain-text value of it's 32-bit STS counter
+  17:Core/Src/get_msg_from_anchors2.c ****  *           checks the quality of the STS of the received frame. If the received frame has bad STS
+  18:Core/Src/get_msg_from_anchors2.c ****  *           counter value received to adjust it's own STS counter value to match. This means that 
+  19:Core/Src/get_msg_from_anchors2.c ****  *
+  20:Core/Src/get_msg_from_anchors2.c ****  * @attention
+  21:Core/Src/get_msg_from_anchors2.c ****  *
+  22:Core/Src/get_msg_from_anchors2.c ****  * Copyright 2019 - 2020 (c) Decawave Ltd, Dublin, Ireland.
+  23:Core/Src/get_msg_from_anchors2.c ****  *
+  24:Core/Src/get_msg_from_anchors2.c ****  * All rights reserved.
+  25:Core/Src/get_msg_from_anchors2.c ****  *
+  26:Core/Src/get_msg_from_anchors2.c ****  * @author Decawave
+  27:Core/Src/get_msg_from_anchors2.c ****  */
+  28:Core/Src/get_msg_from_anchors2.c **** #include "main.h"
+  29:Core/Src/get_msg_from_anchors2.c **** #include "tim.h"
+  30:Core/Src/get_msg_from_anchors2.c **** #include <stdlib.h>
+  31:Core/Src/get_msg_from_anchors2.c **** #include <deca_device_api.h>
+  32:Core/Src/get_msg_from_anchors2.c **** #include <deca_regs.h>
+  33:Core/Src/get_msg_from_anchors2.c **** #include <deca_spi.h>
+  34:Core/Src/get_msg_from_anchors2.c **** #include <port.h>
+  35:Core/Src/get_msg_from_anchors2.c **** #include <shared_defines.h>
+  36:Core/Src/get_msg_from_anchors2.c **** #include <shared_functions.h>
+  37:Core/Src/get_msg_from_anchors2.c **** #include <example_selection.h>
+  38:Core/Src/get_msg_from_anchors2.c **** #include <config_options.h>
+  39:Core/Src/get_msg_from_anchors2.c **** #include "myFunctions.h"
+  40:Core/Src/get_msg_from_anchors2.c **** 
+  41:Core/Src/get_msg_from_anchors2.c **** #if defined(TEST_GET_MSG_FROM_ANCHORS_2)
+  42:Core/Src/get_msg_from_anchors2.c **** 
+  43:Core/Src/get_msg_from_anchors2.c **** extern void test_run_info(unsigned char *data);
+  44:Core/Src/get_msg_from_anchors2.c **** extern void test_run_info_DMA(unsigned char *data);
+  45:Core/Src/get_msg_from_anchors2.c **** /* Example application name */
+  46:Core/Src/get_msg_from_anchors2.c **** #define APP_NAME "GET_MSG_FROM_ANCHORS v2.0"
+  47:Core/Src/get_msg_from_anchors2.c **** 
+  48:Core/Src/get_msg_from_anchors2.c **** 
+  49:Core/Src/get_msg_from_anchors2.c **** /* Frames used in the ranging process. See NOTE 3 below. */
+  50:Core/Src/get_msg_from_anchors2.c **** static uint8_t tx_dist_to_PC[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'P', 'C', 'A', 'N', 0xE0, 0, 0, 0, 0, 
+  51:Core/Src/get_msg_from_anchors2.c **** 							  //  0    1     2   3     4     5   6     7   8     9    10 11 12 13 14 15 16 17 18 19 20 2
+  52:Core/Src/get_msg_from_anchors2.c **** 																					// X  1  1  0  .  2  3  m  -  1  6  3  .  2  1  d  E \0 b1 b2
+  53:Core/Src/get_msg_from_anchors2.c **** 														                            // b1 and b2 - CHECK BITS, DWM add it to end
+  54:Core/Src/get_msg_from_anchors2.c **** /* Number of anchors */
+  55:Core/Src/get_msg_from_anchors2.c **** #define NUMBER_OF_ANCHORS 4  //choose 4 or 6
+  56:Core/Src/get_msg_from_anchors2.c **** 
+  57:Core/Src/get_msg_from_anchors2.c **** #if 1
+  58:Core/Src/get_msg_from_anchors2.c **** /* In table allDistancesToPC we concatenate all distances in type char separate them using ":"
+  59:Core/Src/get_msg_from_anchors2.c ****  *
+  60:Core/Src/get_msg_from_anchors2.c ****  * For example: {2.34:2.80:0.55:10.05:};
+  61:Core/Src/get_msg_from_anchors2.c ****  *              //A     B     C     D
+  62:Core/Src/get_msg_from_anchors2.c ****  *
+  63:Core/Src/get_msg_from_anchors2.c ****  */
+  64:Core/Src/get_msg_from_anchors2.c **** #define LENGTH_FOR_4_ANCHORS 64
+ARM GAS  /tmp/ccMAsx9I.s 			page 3
+
+
+  65:Core/Src/get_msg_from_anchors2.c **** #define LENGTH_FOR_6_ANCHORS 100
+  66:Core/Src/get_msg_from_anchors2.c **** #if NUMBER_OF_ANCHORS == 4
+  67:Core/Src/get_msg_from_anchors2.c **** char allDistancesToPC_E[LENGTH_FOR_4_ANCHORS];
+  68:Core/Src/get_msg_from_anchors2.c **** char allDistancesToPC_F[LENGTH_FOR_4_ANCHORS];
+  69:Core/Src/get_msg_from_anchors2.c **** char allDistancesToPC_G[LENGTH_FOR_4_ANCHORS];
+  70:Core/Src/get_msg_from_anchors2.c **** #elif NUMBER_OF_ANCHORS == 6
+  71:Core/Src/get_msg_from_anchors2.c **** char allDistancesToPC_E[LENGTH_FOR_6_ANCHORS];
+  72:Core/Src/get_msg_from_anchors2.c **** char allDistancesToPC_F[LENGTH_FOR_6_ANCHORS];
+  73:Core/Src/get_msg_from_anchors2.c **** char allDistancesToPC_G[LENGTH_FOR_6_ANCHORS];
+  74:Core/Src/get_msg_from_anchors2.c **** #endif
+  75:Core/Src/get_msg_from_anchors2.c **** 
+  76:Core/Src/get_msg_from_anchors2.c **** /*
+  77:Core/Src/get_msg_from_anchors2.c ****  * In lookUpTable we store information about when all distances from anchors are got
+  78:Core/Src/get_msg_from_anchors2.c ****  *  For example [1, 0, 1, 1]
+  79:Core/Src/get_msg_from_anchors2.c ****  *  			 A  B  C  D
+  80:Core/Src/get_msg_from_anchors2.c ****  *  Here we know that we didn't receive distance from anchor B
+  81:Core/Src/get_msg_from_anchors2.c ****  */
+  82:Core/Src/get_msg_from_anchors2.c **** #if NUMBER_OF_ANCHORS == 4
+  83:Core/Src/get_msg_from_anchors2.c **** uint8_t lookUpTable_E[NUMBER_OF_ANCHORS];
+  84:Core/Src/get_msg_from_anchors2.c **** uint8_t lookUpTable_F[NUMBER_OF_ANCHORS];
+  85:Core/Src/get_msg_from_anchors2.c **** uint8_t lookUpTable_G[NUMBER_OF_ANCHORS];
+  86:Core/Src/get_msg_from_anchors2.c **** #elif NUMBER_OF_ANCHORS == 6
+  87:Core/Src/get_msg_from_anchors2.c **** uint8_t lookUpTable_E[NUMBER_OF_ANCHORS];
+  88:Core/Src/get_msg_from_anchors2.c **** uint8_t lookUpTable_F[NUMBER_OF_ANCHORS];
+  89:Core/Src/get_msg_from_anchors2.c **** uint8_t lookUpTable_G[NUMBER_OF_ANCHORS];
+  90:Core/Src/get_msg_from_anchors2.c **** #endif
+  91:Core/Src/get_msg_from_anchors2.c **** 
+  92:Core/Src/get_msg_from_anchors2.c **** 
+  93:Core/Src/get_msg_from_anchors2.c **** /* Table distances take distance in type float from anchor to relative index
+  94:Core/Src/get_msg_from_anchors2.c ****  * distances -> [  ,   ,   ,   ,]
+  95:Core/Src/get_msg_from_anchors2.c ****  * anchors ->    A   B   C   D
+  96:Core/Src/get_msg_from_anchors2.c ****  */
+  97:Core/Src/get_msg_from_anchors2.c **** #if NUMBER_OF_ANCHORS == 4
+  98:Core/Src/get_msg_from_anchors2.c **** float distances_E[NUMBER_OF_ANCHORS];
+  99:Core/Src/get_msg_from_anchors2.c **** float rssi_E[NUMBER_OF_ANCHORS];
+ 100:Core/Src/get_msg_from_anchors2.c **** float distances_F[NUMBER_OF_ANCHORS];
+ 101:Core/Src/get_msg_from_anchors2.c **** float rssi_F[NUMBER_OF_ANCHORS];
+ 102:Core/Src/get_msg_from_anchors2.c **** float distances_G[NUMBER_OF_ANCHORS];
+ 103:Core/Src/get_msg_from_anchors2.c **** float rssi_G[NUMBER_OF_ANCHORS];
+ 104:Core/Src/get_msg_from_anchors2.c **** #elif NUMBER_OF_ANCHORS == 6
+ 105:Core/Src/get_msg_from_anchors2.c **** float distances_E[NUMBER_OF_ANCHORS];
+ 106:Core/Src/get_msg_from_anchors2.c **** float rssi_E[NUMBER_OF_ANCHORS];
+ 107:Core/Src/get_msg_from_anchors2.c **** float distances_F[NUMBER_OF_ANCHORS];
+ 108:Core/Src/get_msg_from_anchors2.c **** float rssi_F[NUMBER_OF_ANCHORS];
+ 109:Core/Src/get_msg_from_anchors2.c **** float distances_G[NUMBER_OF_ANCHORS];
+ 110:Core/Src/get_msg_from_anchors2.c **** float rssi_G[NUMBER_OF_ANCHORS];
+ 111:Core/Src/get_msg_from_anchors2.c **** #endif
+ 112:Core/Src/get_msg_from_anchors2.c **** 
+ 113:Core/Src/get_msg_from_anchors2.c **** /* here we take letter of anchor */
+ 114:Core/Src/get_msg_from_anchors2.c **** char anchor;
+ 115:Core/Src/get_msg_from_anchors2.c **** char tag[1];
+ 116:Core/Src/get_msg_from_anchors2.c **** uint8_t indexTag;
+ 117:Core/Src/get_msg_from_anchors2.c **** char *eptr;
+ 118:Core/Src/get_msg_from_anchors2.c **** 
+ 119:Core/Src/get_msg_from_anchors2.c **** #endif
+ 120:Core/Src/get_msg_from_anchors2.c **** 
+ 121:Core/Src/get_msg_from_anchors2.c **** 
+ARM GAS  /tmp/ccMAsx9I.s 			page 4
+
+
+ 122:Core/Src/get_msg_from_anchors2.c **** /* Length of the common part of the message (up to and including the function code, see NOTE 3 belo
+ 123:Core/Src/get_msg_from_anchors2.c **** #define ALL_MSG_COMMON_LEN 10
+ 124:Core/Src/get_msg_from_anchors2.c **** #define ANCHOR_IDX 10
+ 125:Core/Src/get_msg_from_anchors2.c **** #define ALL_MSG_SN_IDX 2
+ 126:Core/Src/get_msg_from_anchors2.c **** 
+ 127:Core/Src/get_msg_from_anchors2.c **** 
+ 128:Core/Src/get_msg_from_anchors2.c **** /* Buffer to store received messages.
+ 129:Core/Src/get_msg_from_anchors2.c ****  * Its size is adjusted to longest frame that this example code is supposed to handle. */
+ 130:Core/Src/get_msg_from_anchors2.c **** #define RX_BUF_LEN 30//Must be less than FRAME_LEN_MAX_EX
+ 131:Core/Src/get_msg_from_anchors2.c **** static uint8_t rx_buffer[RX_BUF_LEN];
+ 132:Core/Src/get_msg_from_anchors2.c **** 
+ 133:Core/Src/get_msg_from_anchors2.c **** /* Hold copy of status register state here for reference so that it can be examined at a debug brea
+ 134:Core/Src/get_msg_from_anchors2.c **** static uint32_t status_reg = 0;
+ 135:Core/Src/get_msg_from_anchors2.c **** 
+ 136:Core/Src/get_msg_from_anchors2.c **** 
+ 137:Core/Src/get_msg_from_anchors2.c **** /* Hold the amount of errors that have occurred */
+ 138:Core/Src/get_msg_from_anchors2.c **** static uint32_t errors[23] = {0};
+ 139:Core/Src/get_msg_from_anchors2.c **** 
+ 140:Core/Src/get_msg_from_anchors2.c **** char msg_to_PC[20];
+ 141:Core/Src/get_msg_from_anchors2.c **** uint32_t timetick_1=0;
+ 142:Core/Src/get_msg_from_anchors2.c **** uint32_t timetick_2=0;
+ 143:Core/Src/get_msg_from_anchors2.c **** uint32_t diff=0;
+ 144:Core/Src/get_msg_from_anchors2.c **** uint32_t i=0;
+ 145:Core/Src/get_msg_from_anchors2.c **** char time[16];
+ 146:Core/Src/get_msg_from_anchors2.c **** char rssi[8];
+ 147:Core/Src/get_msg_from_anchors2.c **** char distance[6];
+ 148:Core/Src/get_msg_from_anchors2.c **** 
+ 149:Core/Src/get_msg_from_anchors2.c **** extern dwt_config_t config_options;
+ 150:Core/Src/get_msg_from_anchors2.c **** extern dwt_txconfig_t txconfig_options;
+ 151:Core/Src/get_msg_from_anchors2.c **** extern dwt_txconfig_t txconfig_options_ch9;
+ 152:Core/Src/get_msg_from_anchors2.c **** 
+ 153:Core/Src/get_msg_from_anchors2.c **** /*
+ 154:Core/Src/get_msg_from_anchors2.c ****  * 128-bit STS key to be programmed into CP_KEY register.
+ 155:Core/Src/get_msg_from_anchors2.c ****  *
+ 156:Core/Src/get_msg_from_anchors2.c ****  * This key needs to be known and programmed the same at both units performing the SS-TWR.
+ 157:Core/Src/get_msg_from_anchors2.c ****  * In a real application for security this would be private and unique to the two communicating uni
+ 158:Core/Src/get_msg_from_anchors2.c ****  * and chosen/assigned in a secure manner lasting just for the period of their association.
+ 159:Core/Src/get_msg_from_anchors2.c ****  *
+ 160:Core/Src/get_msg_from_anchors2.c ****  * Here we use a default KEY as specified in the IEEE 802.15.4z annex
+ 161:Core/Src/get_msg_from_anchors2.c ****  */
+ 162:Core/Src/get_msg_from_anchors2.c **** #if 0
+ 163:Core/Src/get_msg_from_anchors2.c **** static dwt_sts_cp_key_t cp_key =
+ 164:Core/Src/get_msg_from_anchors2.c **** {
+ 165:Core/Src/get_msg_from_anchors2.c ****         0x14EB220F,0xF86050A8,0xD1D336AA,0x14148674
+ 166:Core/Src/get_msg_from_anchors2.c **** };
+ 167:Core/Src/get_msg_from_anchors2.c **** #endif
+ 168:Core/Src/get_msg_from_anchors2.c **** 
+ 169:Core/Src/get_msg_from_anchors2.c **** /*
+ 170:Core/Src/get_msg_from_anchors2.c ****  * 128-bit initial value for the nonce to be programmed into the CP_IV register.
+ 171:Core/Src/get_msg_from_anchors2.c ****  *
+ 172:Core/Src/get_msg_from_anchors2.c ****  * The IV, like the key, needs to be known and programmed the same at both units performing the SS-
+ 173:Core/Src/get_msg_from_anchors2.c ****  * It can be considered as an extension of the KEY. The low 32 bits of the IV is the counter.
+ 174:Core/Src/get_msg_from_anchors2.c ****  * In a real application for any particular key the value of the IV including the count should not 
+ 175:Core/Src/get_msg_from_anchors2.c ****  * i.e. if the counter value wraps the upper 96-bits of the IV should be changed, e.g. incremented.
+ 176:Core/Src/get_msg_from_anchors2.c ****  *
+ 177:Core/Src/get_msg_from_anchors2.c ****  * Here we use a default IV as specified in the IEEE 802.15.4z annex
+ 178:Core/Src/get_msg_from_anchors2.c ****  */
+ARM GAS  /tmp/ccMAsx9I.s 			page 5
+
+
+ 179:Core/Src/get_msg_from_anchors2.c **** #if 0
+ 180:Core/Src/get_msg_from_anchors2.c **** static dwt_sts_cp_iv_t cp_iv =
+ 181:Core/Src/get_msg_from_anchors2.c **** {
+ 182:Core/Src/get_msg_from_anchors2.c ****         0x1F9A3DE4,0xD37EC3CA,0xC44FA8FB,0x362EEB34
+ 183:Core/Src/get_msg_from_anchors2.c **** };
+ 184:Core/Src/get_msg_from_anchors2.c **** #endif
+ 185:Core/Src/get_msg_from_anchors2.c **** 
+ 186:Core/Src/get_msg_from_anchors2.c **** /*! -----------------------------------------------------------------------------------------------
+ 187:Core/Src/get_msg_from_anchors2.c ****  * @fn ds_twr_responder_sts()
+ 188:Core/Src/get_msg_from_anchors2.c ****  *
+ 189:Core/Src/get_msg_from_anchors2.c ****  * @brief Application entry point.
+ 190:Core/Src/get_msg_from_anchors2.c ****  *
+ 191:Core/Src/get_msg_from_anchors2.c ****  * @param  none
+ 192:Core/Src/get_msg_from_anchors2.c ****  *
+ 193:Core/Src/get_msg_from_anchors2.c ****  * @return none
+ 194:Core/Src/get_msg_from_anchors2.c ****  */
+ 195:Core/Src/get_msg_from_anchors2.c **** int get_msg_from_anchors(void)
+ 196:Core/Src/get_msg_from_anchors2.c **** {
+  40              		.loc 1 196 1 view -0
+  41              		.cfi_startproc
+  42              		@ args = 0, pretend = 0, frame = 0
+  43              		@ frame_needed = 0, uses_anonymous_args = 0
+  44 0000 70B5     		push	{r4, r5, r6, lr}
+  45              		.cfi_def_cfa_offset 16
+  46              		.cfi_offset 4, -16
+  47              		.cfi_offset 5, -12
+  48              		.cfi_offset 6, -8
+  49              		.cfi_offset 14, -4
+  50 0002 82B0     		sub	sp, sp, #8
+  51              		.cfi_def_cfa_offset 24
+ 197:Core/Src/get_msg_from_anchors2.c **** 
+ 198:Core/Src/get_msg_from_anchors2.c **** #if 0
+ 199:Core/Src/get_msg_from_anchors2.c ****     int16_t stsQual; /* This will contain STS quality index and status */
+ 200:Core/Src/get_msg_from_anchors2.c ****     int goodSts = 0; /* Used for checking STS quality in received signal */
+ 201:Core/Src/get_msg_from_anchors2.c ****     uint8_t messageFlag = 0; /* Used to track whether STS count should be reinitialised or not */
+ 202:Core/Src/get_msg_from_anchors2.c **** #endif
+ 203:Core/Src/get_msg_from_anchors2.c ****     /* Display application name on UART. */
+ 204:Core/Src/get_msg_from_anchors2.c ****     test_run_info((unsigned char *)APP_NAME);
+  52              		.loc 1 204 5 view .LVU1
+  53 0004 AF48     		ldr	r0, .L36
+  54 0006 FFF7FEFF 		bl	test_run_info
+  55              	.LVL0:
+ 205:Core/Src/get_msg_from_anchors2.c **** 
+ 206:Core/Src/get_msg_from_anchors2.c **** 
+ 207:Core/Src/get_msg_from_anchors2.c ****     /* Reset DW IC */
+ 208:Core/Src/get_msg_from_anchors2.c ****     my_reset_DWIC();
+  56              		.loc 1 208 5 view .LVU2
+  57 000a FFF7FEFF 		bl	my_reset_DWIC
+  58              	.LVL1:
+ 209:Core/Src/get_msg_from_anchors2.c **** 
+ 210:Core/Src/get_msg_from_anchors2.c ****     while (!dwt_checkidlerc()) /* Need to make sure DW IC is in IDLE_RC before proceeding */
+  59              		.loc 1 210 5 view .LVU3
+  60              	.L2:
+ 211:Core/Src/get_msg_from_anchors2.c ****     { };
+  61              		.loc 1 211 7 discriminator 1 view .LVU4
+ 210:Core/Src/get_msg_from_anchors2.c ****     { };
+  62              		.loc 1 210 11 discriminator 1 view .LVU5
+ARM GAS  /tmp/ccMAsx9I.s 			page 6
+
+
+ 210:Core/Src/get_msg_from_anchors2.c ****     { };
+  63              		.loc 1 210 13 is_stmt 0 discriminator 1 view .LVU6
+  64 000e FFF7FEFF 		bl	dwt_checkidlerc
+  65              	.LVL2:
+ 210:Core/Src/get_msg_from_anchors2.c ****     { };
+  66              		.loc 1 210 11 discriminator 1 view .LVU7
+  67 0012 0028     		cmp	r0, #0
+  68 0014 FBD0     		beq	.L2
+  69              		.loc 1 211 8 is_stmt 1 view .LVU8
+ 212:Core/Src/get_msg_from_anchors2.c **** 
+ 213:Core/Src/get_msg_from_anchors2.c ****     // Start timer from STM
+ 214:Core/Src/get_msg_from_anchors2.c ****     //HAL_TIM_Base_Start(&htim2);
+ 215:Core/Src/get_msg_from_anchors2.c **** 
+ 216:Core/Src/get_msg_from_anchors2.c ****     if (dwt_initialise(DWT_DW_IDLE) == DWT_ERROR)
+  70              		.loc 1 216 5 view .LVU9
+  71              		.loc 1 216 9 is_stmt 0 view .LVU10
+  72 0016 0120     		movs	r0, #1
+  73 0018 FFF7FEFF 		bl	dwt_initialise
+  74              	.LVL3:
+  75              		.loc 1 216 8 view .LVU11
+  76 001c B0F1FF3F 		cmp	r0, #-1
+  77 0020 34D0     		beq	.L32
+ 217:Core/Src/get_msg_from_anchors2.c ****     {
+ 218:Core/Src/get_msg_from_anchors2.c ****         test_run_info((unsigned char *)"INIT FAILED     ");
+ 219:Core/Src/get_msg_from_anchors2.c ****         while (1)
+ 220:Core/Src/get_msg_from_anchors2.c ****         { };
+  78              		.loc 1 220 12 is_stmt 1 view .LVU12
+ 221:Core/Src/get_msg_from_anchors2.c ****     }
+ 222:Core/Src/get_msg_from_anchors2.c **** 
+ 223:Core/Src/get_msg_from_anchors2.c ****     /* Enabling LEDs here for debug so that for each TX the D1 LED will flash on DW3000 red eval-sh
+ 224:Core/Src/get_msg_from_anchors2.c ****      * Note, in real low power applications the LEDs should not be used. */
+ 225:Core/Src/get_msg_from_anchors2.c ****     //dwt_setleds(DWT_LEDS_ENABLE | DWT_LEDS_INIT_BLINK) ;
+ 226:Core/Src/get_msg_from_anchors2.c **** 
+ 227:Core/Src/get_msg_from_anchors2.c ****     /* Configure DW IC. See NOTE 14 below. */
+ 228:Core/Src/get_msg_from_anchors2.c ****     if(dwt_configure(&config_options)) /* if the dwt_configure returns DWT_ERROR either the PLL or 
+  79              		.loc 1 228 5 view .LVU13
+  80              		.loc 1 228 8 is_stmt 0 view .LVU14
+  81 0022 A948     		ldr	r0, .L36+4
+  82 0024 FFF7FEFF 		bl	dwt_configure
+  83              	.LVL4:
+  84              		.loc 1 228 7 view .LVU15
+  85 0028 0028     		cmp	r0, #0
+  86 002a 33D1     		bne	.L33
+ 229:Core/Src/get_msg_from_anchors2.c ****     {
+ 230:Core/Src/get_msg_from_anchors2.c ****         test_run_info((unsigned char *)"CONFIG FAILED     ");
+ 231:Core/Src/get_msg_from_anchors2.c ****         while (1)
+ 232:Core/Src/get_msg_from_anchors2.c ****         { };
+  87              		.loc 1 232 12 is_stmt 1 view .LVU16
+ 233:Core/Src/get_msg_from_anchors2.c ****     }
+ 234:Core/Src/get_msg_from_anchors2.c **** 
+ 235:Core/Src/get_msg_from_anchors2.c ****     /* Configure the TX spectrum parameters (power, PG delay and PG count) */
+ 236:Core/Src/get_msg_from_anchors2.c ****     if(config_options.chan == 5)
+  88              		.loc 1 236 5 view .LVU17
+  89              		.loc 1 236 22 is_stmt 0 view .LVU18
+  90 002c A64B     		ldr	r3, .L36+4
+  91 002e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  92              		.loc 1 236 7 view .LVU19
+ARM GAS  /tmp/ccMAsx9I.s 			page 7
+
+
+  93 0030 052B     		cmp	r3, #5
+  94 0032 33D0     		beq	.L34
+ 237:Core/Src/get_msg_from_anchors2.c ****     {
+ 238:Core/Src/get_msg_from_anchors2.c ****         dwt_configuretxrf(&txconfig_options);
+ 239:Core/Src/get_msg_from_anchors2.c ****     }
+ 240:Core/Src/get_msg_from_anchors2.c ****     else
+ 241:Core/Src/get_msg_from_anchors2.c ****     {
+ 242:Core/Src/get_msg_from_anchors2.c ****         dwt_configuretxrf(&txconfig_options_ch9);
+  95              		.loc 1 242 9 is_stmt 1 view .LVU20
+  96 0034 A548     		ldr	r0, .L36+8
+  97 0036 FFF7FEFF 		bl	dwt_configuretxrf
+  98              	.LVL5:
+  99              	.L8:
+ 243:Core/Src/get_msg_from_anchors2.c ****     }
+ 244:Core/Src/get_msg_from_anchors2.c **** 
+ 245:Core/Src/get_msg_from_anchors2.c ****     //configure frame filtering
+ 246:Core/Src/get_msg_from_anchors2.c ****     dwt_configureframefilter(DWT_FF_ENABLE_802_15_4, DWT_FF_DATA_EN);
+ 100              		.loc 1 246 5 view .LVU21
+ 101 003a 0221     		movs	r1, #2
+ 102 003c 0846     		mov	r0, r1
+ 103 003e FFF7FEFF 		bl	dwt_configureframefilter
+ 104              	.LVL6:
+ 247:Core/Src/get_msg_from_anchors2.c ****     dwt_setpanid(0xDECA);
+ 105              		.loc 1 247 5 view .LVU22
+ 106 0042 4DF6CA60 		movw	r0, #57034
+ 107 0046 FFF7FEFF 		bl	dwt_setpanid
+ 108              	.LVL7:
+ 248:Core/Src/get_msg_from_anchors2.c ****     dwt_setaddress16(0x4350);
+ 109              		.loc 1 248 5 view .LVU23
+ 110 004a 44F25030 		movw	r0, #17232
+ 111 004e FFF7FEFF 		bl	dwt_setaddress16
+ 112              	.LVL8:
+ 249:Core/Src/get_msg_from_anchors2.c **** 
+ 250:Core/Src/get_msg_from_anchors2.c ****     // clear tables
+ 251:Core/Src/get_msg_from_anchors2.c **** #if NUMBER_OF_ANCHORS == 4
+ 252:Core/Src/get_msg_from_anchors2.c ****     memset(allDistancesToPC_E, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
+ 113              		.loc 1 252 5 view .LVU24
+ 114 0052 4024     		movs	r4, #64
+ 115 0054 2246     		mov	r2, r4
+ 116 0056 0021     		movs	r1, #0
+ 117 0058 9D48     		ldr	r0, .L36+12
+ 118 005a FFF7FEFF 		bl	memset
+ 119              	.LVL9:
+ 253:Core/Src/get_msg_from_anchors2.c ****     memset(allDistancesToPC_F, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
+ 120              		.loc 1 253 5 view .LVU25
+ 121 005e 2246     		mov	r2, r4
+ 122 0060 0021     		movs	r1, #0
+ 123 0062 9C48     		ldr	r0, .L36+16
+ 124 0064 FFF7FEFF 		bl	memset
+ 125              	.LVL10:
+ 254:Core/Src/get_msg_from_anchors2.c ****     memset(allDistancesToPC_G, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
+ 126              		.loc 1 254 5 view .LVU26
+ 127 0068 2246     		mov	r2, r4
+ 128 006a 0021     		movs	r1, #0
+ 129 006c 9A48     		ldr	r0, .L36+20
+ 130 006e FFF7FEFF 		bl	memset
+ 131              	.LVL11:
+ARM GAS  /tmp/ccMAsx9I.s 			page 8
+
+
+ 255:Core/Src/get_msg_from_anchors2.c ****     memset(lookUpTable_E, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 132              		.loc 1 255 5 view .LVU27
+ 133 0072 0023     		movs	r3, #0
+ 134 0074 994A     		ldr	r2, .L36+24
+ 135 0076 1360     		str	r3, [r2]
+ 256:Core/Src/get_msg_from_anchors2.c ****     memset(lookUpTable_F, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 136              		.loc 1 256 5 view .LVU28
+ 137 0078 994A     		ldr	r2, .L36+28
+ 138 007a 1360     		str	r3, [r2]
+ 257:Core/Src/get_msg_from_anchors2.c ****     memset(lookUpTable_G, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 139              		.loc 1 257 5 view .LVU29
+ 140 007c 994A     		ldr	r2, .L36+32
+ 141 007e 1360     		str	r3, [r2]
+ 258:Core/Src/get_msg_from_anchors2.c **** #else
+ 259:Core/Src/get_msg_from_anchors2.c ****     memset(allDistancesToPC_E, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
+ 260:Core/Src/get_msg_from_anchors2.c **** 	memset(allDistancesToPC_F, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
+ 261:Core/Src/get_msg_from_anchors2.c **** 	memset(allDistancesToPC_G, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
+ 262:Core/Src/get_msg_from_anchors2.c **** 	memset(lookUpTable_E, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 263:Core/Src/get_msg_from_anchors2.c **** 	memset(lookUpTable_F, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 264:Core/Src/get_msg_from_anchors2.c **** 	memset(lookUpTable_G, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 265:Core/Src/get_msg_from_anchors2.c **** #endif
+ 266:Core/Src/get_msg_from_anchors2.c ****     memset(time, '\0', 16*sizeof(char));
+ 142              		.loc 1 266 5 view .LVU30
+ 143 0080 994A     		ldr	r2, .L36+36
+ 144 0082 1360     		str	r3, [r2]
+ 145 0084 5360     		str	r3, [r2, #4]
+ 146 0086 9360     		str	r3, [r2, #8]
+ 147 0088 D360     		str	r3, [r2, #12]
+ 148 008a 2FE2     		b	.L9
+ 149              	.L32:
+ 218:Core/Src/get_msg_from_anchors2.c ****         while (1)
+ 150              		.loc 1 218 9 view .LVU31
+ 151 008c 9748     		ldr	r0, .L36+40
+ 152 008e FFF7FEFF 		bl	test_run_info
+ 153              	.LVL12:
+ 154              	.L4:
+ 219:Core/Src/get_msg_from_anchors2.c ****         { };
+ 155              		.loc 1 219 9 discriminator 1 view .LVU32
+ 220:Core/Src/get_msg_from_anchors2.c ****     }
+ 156              		.loc 1 220 11 discriminator 1 view .LVU33
+ 219:Core/Src/get_msg_from_anchors2.c ****         { };
+ 157              		.loc 1 219 15 discriminator 1 view .LVU34
+ 158 0092 FEE7     		b	.L4
+ 159              	.L33:
+ 230:Core/Src/get_msg_from_anchors2.c ****         while (1)
+ 160              		.loc 1 230 9 view .LVU35
+ 161 0094 9648     		ldr	r0, .L36+44
+ 162 0096 FFF7FEFF 		bl	test_run_info
+ 163              	.LVL13:
+ 164              	.L6:
+ 231:Core/Src/get_msg_from_anchors2.c ****         { };
+ 165              		.loc 1 231 9 discriminator 2 view .LVU36
+ 232:Core/Src/get_msg_from_anchors2.c ****     }
+ 166              		.loc 1 232 11 discriminator 2 view .LVU37
+ 231:Core/Src/get_msg_from_anchors2.c ****         { };
+ 167              		.loc 1 231 15 discriminator 2 view .LVU38
+ 168 009a FEE7     		b	.L6
+ARM GAS  /tmp/ccMAsx9I.s 			page 9
+
+
+ 169              	.L34:
+ 238:Core/Src/get_msg_from_anchors2.c ****     }
+ 170              		.loc 1 238 9 view .LVU39
+ 171 009c 9548     		ldr	r0, .L36+48
+ 172 009e FFF7FEFF 		bl	dwt_configuretxrf
+ 173              	.LVL14:
+ 174 00a2 CAE7     		b	.L8
+ 175              	.LVL15:
+ 176              	.L19:
+ 177              	.LBB2:
+ 267:Core/Src/get_msg_from_anchors2.c **** 
+ 268:Core/Src/get_msg_from_anchors2.c **** 
+ 269:Core/Src/get_msg_from_anchors2.c ****     /* Loop responding to ranging requests, for RANGE_COUNT number of times */
+ 270:Core/Src/get_msg_from_anchors2.c ****     //while (loopCount < RANGE_COUNT)
+ 271:Core/Src/get_msg_from_anchors2.c **** 	while(1)
+ 272:Core/Src/get_msg_from_anchors2.c ****     {
+ 273:Core/Src/get_msg_from_anchors2.c **** 
+ 274:Core/Src/get_msg_from_anchors2.c **** 		dwt_rxenable(DWT_START_RX_IMMEDIATE);
+ 275:Core/Src/get_msg_from_anchors2.c **** 
+ 276:Core/Src/get_msg_from_anchors2.c ****         /* Poll for reception of a frame or error/timeout. See NOTE 6 below. */
+ 277:Core/Src/get_msg_from_anchors2.c ****         while (!((status_reg = dwt_read32bitreg(SYS_STATUS_ID)) & (SYS_STATUS_RXFCG_BIT_MASK | SYS_
+ 278:Core/Src/get_msg_from_anchors2.c ****         { };
+ 279:Core/Src/get_msg_from_anchors2.c **** 
+ 280:Core/Src/get_msg_from_anchors2.c ****         /*
+ 281:Core/Src/get_msg_from_anchors2.c ****          * Check for a good frame
+ 282:Core/Src/get_msg_from_anchors2.c ****          */
+ 283:Core/Src/get_msg_from_anchors2.c ****         if ((status_reg & SYS_STATUS_RXFCG_BIT_MASK))
+ 284:Core/Src/get_msg_from_anchors2.c ****         {
+ 285:Core/Src/get_msg_from_anchors2.c ****         	//test_run_info((unsigned char *)"Jestem1");
+ 286:Core/Src/get_msg_from_anchors2.c ****             uint32_t frame_len;
+ 287:Core/Src/get_msg_from_anchors2.c **** 
+ 288:Core/Src/get_msg_from_anchors2.c ****             /* Clear good RX frame event in the DW IC status register. */
+ 289:Core/Src/get_msg_from_anchors2.c ****             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_RXFCG_BIT_MASK);
+ 290:Core/Src/get_msg_from_anchors2.c **** 
+ 291:Core/Src/get_msg_from_anchors2.c ****             /* A frame has been received, read it into the local buffer. */
+ 292:Core/Src/get_msg_from_anchors2.c ****             frame_len = dwt_read32bitreg(RX_FINFO_ID) & RXFLEN_MASK;
+ 293:Core/Src/get_msg_from_anchors2.c ****             if (frame_len <= sizeof(rx_buffer))
+ 294:Core/Src/get_msg_from_anchors2.c ****             {
+ 295:Core/Src/get_msg_from_anchors2.c ****             	//test_run_info((unsigned char *)"Jestem2");
+ 296:Core/Src/get_msg_from_anchors2.c ****                 dwt_readrxdata(rx_buffer, frame_len, 0);
+ 297:Core/Src/get_msg_from_anchors2.c **** 
+ 298:Core/Src/get_msg_from_anchors2.c ****                 /* Check that the frame is a poll sent by "SS TWR initiator STS" example.
+ 299:Core/Src/get_msg_from_anchors2.c ****                  * As the sequence number field of the frame is not relevant, it is cleared to simp
+ 300:Core/Src/get_msg_from_anchors2.c ****                 rx_buffer[ALL_MSG_SN_IDX] = 0;
+ 301:Core/Src/get_msg_from_anchors2.c **** 
+ 302:Core/Src/get_msg_from_anchors2.c ****                 if (memcmp(rx_buffer, tx_dist_to_PC, ALL_MSG_COMMON_LEN) == 0)
+ 303:Core/Src/get_msg_from_anchors2.c ****                 {
+ 304:Core/Src/get_msg_from_anchors2.c **** /*
+ 305:Core/Src/get_msg_from_anchors2.c ****  * Ta sekcja pobiera pomiar i odrazu wysyła na komputer. Jeżeli chcemy badać punkt - punkt, to j
+ 306:Core/Src/get_msg_from_anchors2.c ****  */
+ 307:Core/Src/get_msg_from_anchors2.c **** #if 0
+ 308:Core/Src/get_msg_from_anchors2.c ****                 	/*
+ 309:Core/Src/get_msg_from_anchors2.c ****                 	 * Ta sekcja mierzy czas otrzymania pojedynczego pomiaru z jednego anchora
+ 310:Core/Src/get_msg_from_anchors2.c ****                 	 */
+ 311:Core/Src/get_msg_from_anchors2.c **** 	#if 0
+ 312:Core/Src/get_msg_from_anchors2.c ****                 	if(i%2==0)
+ 313:Core/Src/get_msg_from_anchors2.c ****                 	{
+ARM GAS  /tmp/ccMAsx9I.s 			page 10
+
+
+ 314:Core/Src/get_msg_from_anchors2.c ****                 		timetick_1 = __HAL_TIM_GET_COUNTER(&htim2);
+ 315:Core/Src/get_msg_from_anchors2.c ****                 	}
+ 316:Core/Src/get_msg_from_anchors2.c ****                 	else
+ 317:Core/Src/get_msg_from_anchors2.c ****                 	{
+ 318:Core/Src/get_msg_from_anchors2.c ****                 		timetick_2 = __HAL_TIM_GET_COUNTER(&htim2);
+ 319:Core/Src/get_msg_from_anchors2.c ****                 	}
+ 320:Core/Src/get_msg_from_anchors2.c ****                 	if(i>=1)
+ 321:Core/Src/get_msg_from_anchors2.c ****                 	{
+ 322:Core/Src/get_msg_from_anchors2.c ****                 		if(i%2==0)
+ 323:Core/Src/get_msg_from_anchors2.c **** 						{
+ 324:Core/Src/get_msg_from_anchors2.c ****                 			diff = timetick_1 - timetick_2;
+ 325:Core/Src/get_msg_from_anchors2.c **** 						}
+ 326:Core/Src/get_msg_from_anchors2.c **** 						else
+ 327:Core/Src/get_msg_from_anchors2.c **** 						{
+ 328:Core/Src/get_msg_from_anchors2.c **** 							diff = timetick_2 - timetick_1;
+ 329:Core/Src/get_msg_from_anchors2.c **** 						}
+ 330:Core/Src/get_msg_from_anchors2.c **** 
+ 331:Core/Src/get_msg_from_anchors2.c **** 						sprintf(time, "%ld", diff);
+ 332:Core/Src/get_msg_from_anchors2.c **** 						test_run_info((unsigned char *)time);
+ 333:Core/Src/get_msg_from_anchors2.c **** 						memset(time, '\0', 16*sizeof(char));
+ 334:Core/Src/get_msg_from_anchors2.c ****                 	}
+ 335:Core/Src/get_msg_from_anchors2.c ****                 	i++;
+ 336:Core/Src/get_msg_from_anchors2.c **** 	#endif
+ 337:Core/Src/get_msg_from_anchors2.c ****                 	get_msg_toPC_2(msg_to_PC, rx_buffer, ANCHOR_IDX);
+ 338:Core/Src/get_msg_from_anchors2.c ****                 	test_run_info_DMA((unsigned char *)msg_to_PC);
+ 339:Core/Src/get_msg_from_anchors2.c **** 					memset(msg_to_PC, '\0', 20*sizeof(char));
+ 340:Core/Src/get_msg_from_anchors2.c **** #endif
+ 341:Core/Src/get_msg_from_anchors2.c **** /* ======= >Take all distances and then send to PC < =======  */
+ 342:Core/Src/get_msg_from_anchors2.c **** #if 1
+ 343:Core/Src/get_msg_from_anchors2.c **** 					memset(rssi, '\0', 8*sizeof(char));
+ 344:Core/Src/get_msg_from_anchors2.c **** 					memset(distance, '\0', 6*sizeof(char));
+ 345:Core/Src/get_msg_from_anchors2.c **** 					memset(msg_to_PC, '\0', 20*sizeof(char));
+ 346:Core/Src/get_msg_from_anchors2.c **** 					indexTag = get_msg_toPC_2(msg_to_PC, rx_buffer, ANCHOR_IDX);
+ 347:Core/Src/get_msg_from_anchors2.c ****                 	anchor = msg_to_PC[0];
+ 348:Core/Src/get_msg_from_anchors2.c ****                 	tag[0] = msg_to_PC[indexTag];
+ 349:Core/Src/get_msg_from_anchors2.c ****                 	switch (anchor)
+ 350:Core/Src/get_msg_from_anchors2.c ****                 	{
+ 351:Core/Src/get_msg_from_anchors2.c **** 						case 'A':
+ 352:Core/Src/get_msg_from_anchors2.c **** 							switch (tag[0])
+ 178              		.loc 1 352 8 view .LVU40
+ 179 00a4 462B     		cmp	r3, #70
+ 180 00a6 3FD0     		beq	.L20
+ 181 00a8 472B     		cmp	r3, #71
+ 182 00aa 5DD0     		beq	.L21
+ 183 00ac 452B     		cmp	r3, #69
+ 184 00ae 1BD0     		beq	.L35
+ 185              	.L14:
+ 353:Core/Src/get_msg_from_anchors2.c **** 							{
+ 354:Core/Src/get_msg_from_anchors2.c **** 								case 'E':
+ 355:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 356:Core/Src/get_msg_from_anchors2.c **** 									distances_E[0] = strtod(distance, &eptr);
+ 357:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[0] = strtod(rssi, &eptr);
+ 358:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[0] = 1;
+ 359:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 360:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ 361:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 362:Core/Src/get_msg_from_anchors2.c **** 									distances_F[0] = strtod(distance, &eptr);
+ARM GAS  /tmp/ccMAsx9I.s 			page 11
+
+
+ 363:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[0] = strtod(rssi, &eptr);
+ 364:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[0] = 1;
+ 365:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 366:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 367:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 368:Core/Src/get_msg_from_anchors2.c **** 									distances_G[0] = strtod(distance, &eptr);
+ 369:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[0] = strtod(rssi, &eptr);
+ 370:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[0] = 1;
+ 371:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 372:Core/Src/get_msg_from_anchors2.c **** 							}
+ 373:Core/Src/get_msg_from_anchors2.c **** 							break;
+ 374:Core/Src/get_msg_from_anchors2.c **** 						case 'B':
+ 375:Core/Src/get_msg_from_anchors2.c **** 							switch (tag[0])
+ 376:Core/Src/get_msg_from_anchors2.c **** 							{
+ 377:Core/Src/get_msg_from_anchors2.c **** 								case 'E':
+ 378:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 379:Core/Src/get_msg_from_anchors2.c **** 									distances_E[1] = strtod(distance, &eptr);
+ 380:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[1] = strtod(rssi, &eptr);
+ 381:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[1] = 1;
+ 382:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 383:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ 384:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 385:Core/Src/get_msg_from_anchors2.c **** 									distances_F[1] = strtod(distance, &eptr);
+ 386:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[1] = strtod(rssi, &eptr);
+ 387:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[1] = 1;
+ 388:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 389:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 390:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 391:Core/Src/get_msg_from_anchors2.c **** 									distances_G[1] = strtod(distance, &eptr);
+ 392:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[1] = strtod(rssi, &eptr);
+ 393:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[1] = 1;
+ 394:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 395:Core/Src/get_msg_from_anchors2.c **** 							}
+ 396:Core/Src/get_msg_from_anchors2.c **** 							break;
+ 397:Core/Src/get_msg_from_anchors2.c **** 						case 'C': // normlanie C
+ 398:Core/Src/get_msg_from_anchors2.c **** 							switch (tag[0])
+ 399:Core/Src/get_msg_from_anchors2.c **** 							{
+ 400:Core/Src/get_msg_from_anchors2.c **** 								case 'E':
+ 401:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 402:Core/Src/get_msg_from_anchors2.c **** 									distances_E[2] = strtod(distance, &eptr);
+ 403:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[2] = strtod(rssi, &eptr);
+ 404:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[2] = 1;
+ 405:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 406:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ 407:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 408:Core/Src/get_msg_from_anchors2.c **** 									distances_F[2] = strtod(distance, &eptr);
+ 409:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[2] = strtod(rssi, &eptr);
+ 410:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[2] = 1;
+ 411:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 412:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 413:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 414:Core/Src/get_msg_from_anchors2.c **** 									distances_G[2] = strtod(distance, &eptr);
+ 415:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[2] = strtod(rssi, &eptr);
+ 416:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[2] = 1;
+ 417:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 418:Core/Src/get_msg_from_anchors2.c **** 							}
+ 419:Core/Src/get_msg_from_anchors2.c **** 							break;
+ARM GAS  /tmp/ccMAsx9I.s 			page 12
+
+
+ 420:Core/Src/get_msg_from_anchors2.c **** 						case 'D': // normalnie D
+ 421:Core/Src/get_msg_from_anchors2.c **** 							switch (tag[0])
+ 422:Core/Src/get_msg_from_anchors2.c **** 							{
+ 423:Core/Src/get_msg_from_anchors2.c **** 								case 'E':
+ 424:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 425:Core/Src/get_msg_from_anchors2.c **** 									distances_E[3] = strtod(distance, &eptr);
+ 426:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[3] = strtod(rssi, &eptr);
+ 427:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[3] = 1;
+ 428:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 429:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ 430:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 431:Core/Src/get_msg_from_anchors2.c **** 									distances_F[3] = strtod(distance, &eptr);
+ 432:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[3] = strtod(rssi, &eptr);
+ 433:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[3] = 1;
+ 434:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 435:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 436:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 437:Core/Src/get_msg_from_anchors2.c **** 									distances_G[3] = strtod(distance, &eptr);
+ 438:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[3] = strtod(rssi, &eptr);
+ 439:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[3] = 1;
+ 440:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 441:Core/Src/get_msg_from_anchors2.c **** 							}
+ 442:Core/Src/get_msg_from_anchors2.c **** 							break;
+ 443:Core/Src/get_msg_from_anchors2.c **** 	#if NUMBER_OF_ANCHORS == 6
+ 444:Core/Src/get_msg_from_anchors2.c **** 						case 'E':
+ 445:Core/Src/get_msg_from_anchors2.c **** 							switch (tag[0])
+ 446:Core/Src/get_msg_from_anchors2.c **** 							{
+ 447:Core/Src/get_msg_from_anchors2.c **** 								case 'E':
+ 448:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 449:Core/Src/get_msg_from_anchors2.c **** 									distances_E[4] = strtod(distance, &eptr);
+ 450:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[4] = strtod(rssi, &eptr);
+ 451:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[4] = 1;
+ 452:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 453:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ 454:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 455:Core/Src/get_msg_from_anchors2.c **** 									distances_F[4] = strtod(distance, &eptr);
+ 456:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[4] = strtod(rssi, &eptr);
+ 457:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[4] = 1;
+ 458:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 459:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 460:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 461:Core/Src/get_msg_from_anchors2.c **** 									distances_G[4] = strtod(distance, &eptr);
+ 462:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[4] = strtod(rssi, &eptr);
+ 463:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[4] = 1;
+ 464:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 465:Core/Src/get_msg_from_anchors2.c **** 							}
+ 466:Core/Src/get_msg_from_anchors2.c **** 							break;
+ 467:Core/Src/get_msg_from_anchors2.c **** 						case 'F':
+ 468:Core/Src/get_msg_from_anchors2.c **** 							switch (tag[0])
+ 469:Core/Src/get_msg_from_anchors2.c **** 							{
+ 470:Core/Src/get_msg_from_anchors2.c **** 								case 'E':
+ 471:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 472:Core/Src/get_msg_from_anchors2.c **** 									distances_E[5] = strtod(distance, &eptr);
+ 473:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[5] = strtod(rssi, &eptr);
+ 474:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[5] = 1;
+ 475:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 476:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ARM GAS  /tmp/ccMAsx9I.s 			page 13
+
+
+ 477:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 478:Core/Src/get_msg_from_anchors2.c **** 									distances_F[5] = strtod(distance, &eptr);
+ 479:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[5] = strtod(rssi, &eptr);
+ 480:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[5] = 1;
+ 481:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 482:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 483:Core/Src/get_msg_from_anchors2.c **** 									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
+ 484:Core/Src/get_msg_from_anchors2.c **** 									distances_G[5] = strtod(distance, &eptr);
+ 485:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[5] = strtod(rssi, &eptr);
+ 486:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[5] = 1;
+ 487:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 488:Core/Src/get_msg_from_anchors2.c **** 							}
+ 489:Core/Src/get_msg_from_anchors2.c **** 							break;
+ 490:Core/Src/get_msg_from_anchors2.c **** 	#endif
+ 491:Core/Src/get_msg_from_anchors2.c **** 						default:
+ 492:Core/Src/get_msg_from_anchors2.c **** 							break;
+ 493:Core/Src/get_msg_from_anchors2.c **** 					}
+ 494:Core/Src/get_msg_from_anchors2.c ****                 	if (allTrue(lookUpTable_E, NUMBER_OF_ANCHORS))
+ 186              		.loc 1 494 18 view .LVU41
+ 187              		.loc 1 494 22 is_stmt 0 view .LVU42
+ 188 00b0 0421     		movs	r1, #4
+ 189 00b2 8A48     		ldr	r0, .L36+24
+ 190 00b4 FFF7FEFF 		bl	allTrue
+ 191              	.LVL16:
+ 192              		.loc 1 494 21 view .LVU43
+ 193 00b8 0028     		cmp	r0, #0
+ 194 00ba 00F0DA81 		beq	.L28
+ 495:Core/Src/get_msg_from_anchors2.c ****                 	{
+ 496:Core/Src/get_msg_from_anchors2.c **** 						#if NUMBER_OF_ANCHORS == 4
+ 497:Core/Src/get_msg_from_anchors2.c ****                 			memset(allDistancesToPC_E, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
+ 195              		.loc 1 497 20 is_stmt 1 view .LVU44
+ 196 00be 844C     		ldr	r4, .L36+12
+ 197 00c0 4022     		movs	r2, #64
+ 198 00c2 0021     		movs	r1, #0
+ 199 00c4 2046     		mov	r0, r4
+ 200 00c6 FFF7FEFF 		bl	memset
+ 201              	.LVL17:
+ 498:Core/Src/get_msg_from_anchors2.c ****                 			memset(lookUpTable_E, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 202              		.loc 1 498 20 view .LVU45
+ 203 00ca 844B     		ldr	r3, .L36+24
+ 204 00cc 0022     		movs	r2, #0
+ 205 00ce 1A60     		str	r2, [r3]
+ 499:Core/Src/get_msg_from_anchors2.c **** 						#elif NUMBER_OF_ANCHORS == 6
+ 500:Core/Src/get_msg_from_anchors2.c ****                 			memset(allDistancesToPC_E, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
+ 501:Core/Src/get_msg_from_anchors2.c **** 							memset(lookUpTable_E, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 502:Core/Src/get_msg_from_anchors2.c **** 						#endif
+ 503:Core/Src/get_msg_from_anchors2.c **** 						concatenateDistancesAndRssiToString(distances_E, rssi_E, allDistancesToPC_E, NUMBER_OF_ANCHOR
+ 206              		.loc 1 503 7 view .LVU46
+ 207 00d0 894B     		ldr	r3, .L36+52
+ 208 00d2 0093     		str	r3, [sp]
+ 209 00d4 0423     		movs	r3, #4
+ 210 00d6 2246     		mov	r2, r4
+ 211 00d8 8849     		ldr	r1, .L36+56
+ 212 00da 8948     		ldr	r0, .L36+60
+ 213 00dc FFF7FEFF 		bl	concatenateDistancesAndRssiToString
+ 214              	.LVL18:
+ 504:Core/Src/get_msg_from_anchors2.c ****                 		test_run_info_DMA((unsigned char *)allDistancesToPC_E);
+ARM GAS  /tmp/ccMAsx9I.s 			page 14
+
+
+ 215              		.loc 1 504 19 view .LVU47
+ 216 00e0 2046     		mov	r0, r4
+ 217 00e2 FFF7FEFF 		bl	test_run_info_DMA
+ 218              	.LVL19:
+ 219 00e6 01E2     		b	.L9
+ 220              	.L35:
+ 355:Core/Src/get_msg_from_anchors2.c **** 									distances_E[0] = strtod(distance, &eptr);
+ 221              		.loc 1 355 10 view .LVU48
+ 222 00e8 864C     		ldr	r4, .L36+64
+ 223 00ea 874E     		ldr	r6, .L36+68
+ 224 00ec 2246     		mov	r2, r4
+ 225 00ee 3146     		mov	r1, r6
+ 226 00f0 8648     		ldr	r0, .L36+72
+ 227 00f2 FFF7FEFF 		bl	split_dist_rssi
+ 228              	.LVL20:
+ 356:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[0] = strtod(rssi, &eptr);
+ 229              		.loc 1 356 10 view .LVU49
+ 356:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[0] = strtod(rssi, &eptr);
+ 230              		.loc 1 356 27 is_stmt 0 view .LVU50
+ 231 00f6 864D     		ldr	r5, .L36+76
+ 232 00f8 2946     		mov	r1, r5
+ 233 00fa 3046     		mov	r0, r6
+ 234 00fc FFF7FEFF 		bl	strtod
+ 235              	.LVL21:
+ 236 0100 51EC100B 		vmov	r0, r1, d0
+ 237 0104 FFF7FEFF 		bl	__aeabi_d2f
+ 238              	.LVL22:
+ 356:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[0] = strtod(rssi, &eptr);
+ 239              		.loc 1 356 25 view .LVU51
+ 240 0108 7D4B     		ldr	r3, .L36+60
+ 241 010a 1860     		str	r0, [r3]	@ float
+ 357:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[0] = 1;
+ 242              		.loc 1 357 10 is_stmt 1 view .LVU52
+ 357:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[0] = 1;
+ 243              		.loc 1 357 22 is_stmt 0 view .LVU53
+ 244 010c 2946     		mov	r1, r5
+ 245 010e 2046     		mov	r0, r4
+ 246 0110 FFF7FEFF 		bl	strtod
+ 247              	.LVL23:
+ 248 0114 51EC100B 		vmov	r0, r1, d0
+ 249 0118 FFF7FEFF 		bl	__aeabi_d2f
+ 250              	.LVL24:
+ 357:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[0] = 1;
+ 251              		.loc 1 357 20 view .LVU54
+ 252 011c 774B     		ldr	r3, .L36+56
+ 253 011e 1860     		str	r0, [r3]	@ float
+ 358:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 254              		.loc 1 358 10 is_stmt 1 view .LVU55
+ 358:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 255              		.loc 1 358 27 is_stmt 0 view .LVU56
+ 256 0120 6E4B     		ldr	r3, .L36+24
+ 257 0122 0122     		movs	r2, #1
+ 258 0124 1A70     		strb	r2, [r3]
+ 359:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ 259              		.loc 1 359 10 is_stmt 1 view .LVU57
+ 260 0126 C3E7     		b	.L14
+ 261              	.L20:
+ARM GAS  /tmp/ccMAsx9I.s 			page 15
+
+
+ 361:Core/Src/get_msg_from_anchors2.c **** 									distances_F[0] = strtod(distance, &eptr);
+ 262              		.loc 1 361 10 view .LVU58
+ 263 0128 764C     		ldr	r4, .L36+64
+ 264 012a 774E     		ldr	r6, .L36+68
+ 265 012c 2246     		mov	r2, r4
+ 266 012e 3146     		mov	r1, r6
+ 267 0130 7648     		ldr	r0, .L36+72
+ 268 0132 FFF7FEFF 		bl	split_dist_rssi
+ 269              	.LVL25:
+ 362:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[0] = strtod(rssi, &eptr);
+ 270              		.loc 1 362 10 view .LVU59
+ 362:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[0] = strtod(rssi, &eptr);
+ 271              		.loc 1 362 27 is_stmt 0 view .LVU60
+ 272 0136 764D     		ldr	r5, .L36+76
+ 273 0138 2946     		mov	r1, r5
+ 274 013a 3046     		mov	r0, r6
+ 275 013c FFF7FEFF 		bl	strtod
+ 276              	.LVL26:
+ 277 0140 51EC100B 		vmov	r0, r1, d0
+ 278 0144 FFF7FEFF 		bl	__aeabi_d2f
+ 279              	.LVL27:
+ 362:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[0] = strtod(rssi, &eptr);
+ 280              		.loc 1 362 25 view .LVU61
+ 281 0148 724B     		ldr	r3, .L36+80
+ 282 014a 1860     		str	r0, [r3]	@ float
+ 363:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[0] = 1;
+ 283              		.loc 1 363 10 is_stmt 1 view .LVU62
+ 363:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[0] = 1;
+ 284              		.loc 1 363 22 is_stmt 0 view .LVU63
+ 285 014c 2946     		mov	r1, r5
+ 286 014e 2046     		mov	r0, r4
+ 287 0150 FFF7FEFF 		bl	strtod
+ 288              	.LVL28:
+ 289 0154 51EC100B 		vmov	r0, r1, d0
+ 290 0158 FFF7FEFF 		bl	__aeabi_d2f
+ 291              	.LVL29:
+ 363:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[0] = 1;
+ 292              		.loc 1 363 20 view .LVU64
+ 293 015c 6E4B     		ldr	r3, .L36+84
+ 294 015e 1860     		str	r0, [r3]	@ float
+ 364:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 295              		.loc 1 364 10 is_stmt 1 view .LVU65
+ 364:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 296              		.loc 1 364 27 is_stmt 0 view .LVU66
+ 297 0160 5F4B     		ldr	r3, .L36+28
+ 298 0162 0122     		movs	r2, #1
+ 299 0164 1A70     		strb	r2, [r3]
+ 365:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 300              		.loc 1 365 10 is_stmt 1 view .LVU67
+ 301 0166 A3E7     		b	.L14
+ 302              	.L21:
+ 367:Core/Src/get_msg_from_anchors2.c **** 									distances_G[0] = strtod(distance, &eptr);
+ 303              		.loc 1 367 10 view .LVU68
+ 304 0168 664C     		ldr	r4, .L36+64
+ 305 016a 674E     		ldr	r6, .L36+68
+ 306 016c 2246     		mov	r2, r4
+ 307 016e 3146     		mov	r1, r6
+ARM GAS  /tmp/ccMAsx9I.s 			page 16
+
+
+ 308 0170 6648     		ldr	r0, .L36+72
+ 309 0172 FFF7FEFF 		bl	split_dist_rssi
+ 310              	.LVL30:
+ 368:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[0] = strtod(rssi, &eptr);
+ 311              		.loc 1 368 10 view .LVU69
+ 368:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[0] = strtod(rssi, &eptr);
+ 312              		.loc 1 368 27 is_stmt 0 view .LVU70
+ 313 0176 664D     		ldr	r5, .L36+76
+ 314 0178 2946     		mov	r1, r5
+ 315 017a 3046     		mov	r0, r6
+ 316 017c FFF7FEFF 		bl	strtod
+ 317              	.LVL31:
+ 318 0180 51EC100B 		vmov	r0, r1, d0
+ 319 0184 FFF7FEFF 		bl	__aeabi_d2f
+ 320              	.LVL32:
+ 368:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[0] = strtod(rssi, &eptr);
+ 321              		.loc 1 368 25 view .LVU71
+ 322 0188 644B     		ldr	r3, .L36+88
+ 323 018a 1860     		str	r0, [r3]	@ float
+ 369:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[0] = 1;
+ 324              		.loc 1 369 10 is_stmt 1 view .LVU72
+ 369:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[0] = 1;
+ 325              		.loc 1 369 22 is_stmt 0 view .LVU73
+ 326 018c 2946     		mov	r1, r5
+ 327 018e 2046     		mov	r0, r4
+ 328 0190 FFF7FEFF 		bl	strtod
+ 329              	.LVL33:
+ 330 0194 51EC100B 		vmov	r0, r1, d0
+ 331 0198 FFF7FEFF 		bl	__aeabi_d2f
+ 332              	.LVL34:
+ 369:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[0] = 1;
+ 333              		.loc 1 369 20 view .LVU74
+ 334 019c 604B     		ldr	r3, .L36+92
+ 335 019e 1860     		str	r0, [r3]	@ float
+ 370:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 336              		.loc 1 370 10 is_stmt 1 view .LVU75
+ 370:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 337              		.loc 1 370 27 is_stmt 0 view .LVU76
+ 338 01a0 504B     		ldr	r3, .L36+32
+ 339 01a2 0122     		movs	r2, #1
+ 340 01a4 1A70     		strb	r2, [r3]
+ 371:Core/Src/get_msg_from_anchors2.c **** 							}
+ 341              		.loc 1 371 10 is_stmt 1 view .LVU77
+ 342 01a6 83E7     		b	.L14
+ 343              	.L18:
+ 375:Core/Src/get_msg_from_anchors2.c **** 							{
+ 344              		.loc 1 375 8 view .LVU78
+ 345 01a8 462B     		cmp	r3, #70
+ 346 01aa 24D0     		beq	.L22
+ 347 01ac 472B     		cmp	r3, #71
+ 348 01ae 42D0     		beq	.L23
+ 349 01b0 452B     		cmp	r3, #69
+ 350 01b2 7FF47DAF 		bne	.L14
+ 378:Core/Src/get_msg_from_anchors2.c **** 									distances_E[1] = strtod(distance, &eptr);
+ 351              		.loc 1 378 10 view .LVU79
+ 352 01b6 534C     		ldr	r4, .L36+64
+ 353 01b8 534E     		ldr	r6, .L36+68
+ARM GAS  /tmp/ccMAsx9I.s 			page 17
+
+
+ 354 01ba 2246     		mov	r2, r4
+ 355 01bc 3146     		mov	r1, r6
+ 356 01be 5348     		ldr	r0, .L36+72
+ 357 01c0 FFF7FEFF 		bl	split_dist_rssi
+ 358              	.LVL35:
+ 379:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[1] = strtod(rssi, &eptr);
+ 359              		.loc 1 379 10 view .LVU80
+ 379:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[1] = strtod(rssi, &eptr);
+ 360              		.loc 1 379 27 is_stmt 0 view .LVU81
+ 361 01c4 524D     		ldr	r5, .L36+76
+ 362 01c6 2946     		mov	r1, r5
+ 363 01c8 3046     		mov	r0, r6
+ 364 01ca FFF7FEFF 		bl	strtod
+ 365              	.LVL36:
+ 366 01ce 51EC100B 		vmov	r0, r1, d0
+ 367 01d2 FFF7FEFF 		bl	__aeabi_d2f
+ 368              	.LVL37:
+ 379:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[1] = strtod(rssi, &eptr);
+ 369              		.loc 1 379 25 view .LVU82
+ 370 01d6 4A4B     		ldr	r3, .L36+60
+ 371 01d8 5860     		str	r0, [r3, #4]	@ float
+ 380:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[1] = 1;
+ 372              		.loc 1 380 10 is_stmt 1 view .LVU83
+ 380:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[1] = 1;
+ 373              		.loc 1 380 22 is_stmt 0 view .LVU84
+ 374 01da 2946     		mov	r1, r5
+ 375 01dc 2046     		mov	r0, r4
+ 376 01de FFF7FEFF 		bl	strtod
+ 377              	.LVL38:
+ 378 01e2 51EC100B 		vmov	r0, r1, d0
+ 379 01e6 FFF7FEFF 		bl	__aeabi_d2f
+ 380              	.LVL39:
+ 380:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[1] = 1;
+ 381              		.loc 1 380 20 view .LVU85
+ 382 01ea 444B     		ldr	r3, .L36+56
+ 383 01ec 5860     		str	r0, [r3, #4]	@ float
+ 381:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 384              		.loc 1 381 10 is_stmt 1 view .LVU86
+ 381:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 385              		.loc 1 381 27 is_stmt 0 view .LVU87
+ 386 01ee 3B4B     		ldr	r3, .L36+24
+ 387 01f0 0122     		movs	r2, #1
+ 388 01f2 5A70     		strb	r2, [r3, #1]
+ 382:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ 389              		.loc 1 382 10 is_stmt 1 view .LVU88
+ 390 01f4 5CE7     		b	.L14
+ 391              	.L22:
+ 384:Core/Src/get_msg_from_anchors2.c **** 									distances_F[1] = strtod(distance, &eptr);
+ 392              		.loc 1 384 10 view .LVU89
+ 393 01f6 434C     		ldr	r4, .L36+64
+ 394 01f8 434E     		ldr	r6, .L36+68
+ 395 01fa 2246     		mov	r2, r4
+ 396 01fc 3146     		mov	r1, r6
+ 397 01fe 4348     		ldr	r0, .L36+72
+ 398 0200 FFF7FEFF 		bl	split_dist_rssi
+ 399              	.LVL40:
+ 385:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[1] = strtod(rssi, &eptr);
+ARM GAS  /tmp/ccMAsx9I.s 			page 18
+
+
+ 400              		.loc 1 385 10 view .LVU90
+ 385:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[1] = strtod(rssi, &eptr);
+ 401              		.loc 1 385 27 is_stmt 0 view .LVU91
+ 402 0204 424D     		ldr	r5, .L36+76
+ 403 0206 2946     		mov	r1, r5
+ 404 0208 3046     		mov	r0, r6
+ 405 020a FFF7FEFF 		bl	strtod
+ 406              	.LVL41:
+ 407 020e 51EC100B 		vmov	r0, r1, d0
+ 408 0212 FFF7FEFF 		bl	__aeabi_d2f
+ 409              	.LVL42:
+ 385:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[1] = strtod(rssi, &eptr);
+ 410              		.loc 1 385 25 view .LVU92
+ 411 0216 3F4B     		ldr	r3, .L36+80
+ 412 0218 5860     		str	r0, [r3, #4]	@ float
+ 386:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[1] = 1;
+ 413              		.loc 1 386 10 is_stmt 1 view .LVU93
+ 386:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[1] = 1;
+ 414              		.loc 1 386 22 is_stmt 0 view .LVU94
+ 415 021a 2946     		mov	r1, r5
+ 416 021c 2046     		mov	r0, r4
+ 417 021e FFF7FEFF 		bl	strtod
+ 418              	.LVL43:
+ 419 0222 51EC100B 		vmov	r0, r1, d0
+ 420 0226 FFF7FEFF 		bl	__aeabi_d2f
+ 421              	.LVL44:
+ 386:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[1] = 1;
+ 422              		.loc 1 386 20 view .LVU95
+ 423 022a 3B4B     		ldr	r3, .L36+84
+ 424 022c 5860     		str	r0, [r3, #4]	@ float
+ 387:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 425              		.loc 1 387 10 is_stmt 1 view .LVU96
+ 387:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 426              		.loc 1 387 27 is_stmt 0 view .LVU97
+ 427 022e 2C4B     		ldr	r3, .L36+28
+ 428 0230 0122     		movs	r2, #1
+ 429 0232 5A70     		strb	r2, [r3, #1]
+ 388:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 430              		.loc 1 388 10 is_stmt 1 view .LVU98
+ 431 0234 3CE7     		b	.L14
+ 432              	.L23:
+ 390:Core/Src/get_msg_from_anchors2.c **** 									distances_G[1] = strtod(distance, &eptr);
+ 433              		.loc 1 390 10 view .LVU99
+ 434 0236 334C     		ldr	r4, .L36+64
+ 435 0238 334E     		ldr	r6, .L36+68
+ 436 023a 2246     		mov	r2, r4
+ 437 023c 3146     		mov	r1, r6
+ 438 023e 3348     		ldr	r0, .L36+72
+ 439 0240 FFF7FEFF 		bl	split_dist_rssi
+ 440              	.LVL45:
+ 391:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[1] = strtod(rssi, &eptr);
+ 441              		.loc 1 391 10 view .LVU100
+ 391:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[1] = strtod(rssi, &eptr);
+ 442              		.loc 1 391 27 is_stmt 0 view .LVU101
+ 443 0244 324D     		ldr	r5, .L36+76
+ 444 0246 2946     		mov	r1, r5
+ 445 0248 3046     		mov	r0, r6
+ARM GAS  /tmp/ccMAsx9I.s 			page 19
+
+
+ 446 024a FFF7FEFF 		bl	strtod
+ 447              	.LVL46:
+ 448 024e 51EC100B 		vmov	r0, r1, d0
+ 449 0252 FFF7FEFF 		bl	__aeabi_d2f
+ 450              	.LVL47:
+ 391:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[1] = strtod(rssi, &eptr);
+ 451              		.loc 1 391 25 view .LVU102
+ 452 0256 314B     		ldr	r3, .L36+88
+ 453 0258 5860     		str	r0, [r3, #4]	@ float
+ 392:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[1] = 1;
+ 454              		.loc 1 392 10 is_stmt 1 view .LVU103
+ 392:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[1] = 1;
+ 455              		.loc 1 392 22 is_stmt 0 view .LVU104
+ 456 025a 2946     		mov	r1, r5
+ 457 025c 2046     		mov	r0, r4
+ 458 025e FFF7FEFF 		bl	strtod
+ 459              	.LVL48:
+ 460 0262 51EC100B 		vmov	r0, r1, d0
+ 461 0266 FFF7FEFF 		bl	__aeabi_d2f
+ 462              	.LVL49:
+ 392:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[1] = 1;
+ 463              		.loc 1 392 20 view .LVU105
+ 464 026a 2D4B     		ldr	r3, .L36+92
+ 465 026c 5860     		str	r0, [r3, #4]	@ float
+ 393:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 466              		.loc 1 393 10 is_stmt 1 view .LVU106
+ 393:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 467              		.loc 1 393 27 is_stmt 0 view .LVU107
+ 468 026e 1D4B     		ldr	r3, .L36+32
+ 469 0270 0122     		movs	r2, #1
+ 470 0272 5A70     		strb	r2, [r3, #1]
+ 394:Core/Src/get_msg_from_anchors2.c **** 							}
+ 471              		.loc 1 394 10 is_stmt 1 view .LVU108
+ 472 0274 1CE7     		b	.L14
+ 473              	.L17:
+ 398:Core/Src/get_msg_from_anchors2.c **** 							{
+ 474              		.loc 1 398 8 view .LVU109
+ 475 0276 462B     		cmp	r3, #70
+ 476 0278 54D0     		beq	.L24
+ 477 027a 472B     		cmp	r3, #71
+ 478 027c 72D0     		beq	.L25
+ 479 027e 452B     		cmp	r3, #69
+ 480 0280 7FF416AF 		bne	.L14
+ 401:Core/Src/get_msg_from_anchors2.c **** 									distances_E[2] = strtod(distance, &eptr);
+ 481              		.loc 1 401 10 view .LVU110
+ 482 0284 1F4C     		ldr	r4, .L36+64
+ 483 0286 204E     		ldr	r6, .L36+68
+ 484 0288 2246     		mov	r2, r4
+ 485 028a 3146     		mov	r1, r6
+ 486 028c 1F48     		ldr	r0, .L36+72
+ 487 028e FFF7FEFF 		bl	split_dist_rssi
+ 488              	.LVL50:
+ 402:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[2] = strtod(rssi, &eptr);
+ 489              		.loc 1 402 10 view .LVU111
+ 402:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[2] = strtod(rssi, &eptr);
+ 490              		.loc 1 402 27 is_stmt 0 view .LVU112
+ 491 0292 1F4D     		ldr	r5, .L36+76
+ARM GAS  /tmp/ccMAsx9I.s 			page 20
+
+
+ 492 0294 2946     		mov	r1, r5
+ 493 0296 3046     		mov	r0, r6
+ 494 0298 FFF7FEFF 		bl	strtod
+ 495              	.LVL51:
+ 496 029c 51EC100B 		vmov	r0, r1, d0
+ 497 02a0 FFF7FEFF 		bl	__aeabi_d2f
+ 498              	.LVL52:
+ 402:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[2] = strtod(rssi, &eptr);
+ 499              		.loc 1 402 25 view .LVU113
+ 500 02a4 164B     		ldr	r3, .L36+60
+ 501 02a6 9860     		str	r0, [r3, #8]	@ float
+ 403:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[2] = 1;
+ 502              		.loc 1 403 10 is_stmt 1 view .LVU114
+ 403:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[2] = 1;
+ 503              		.loc 1 403 22 is_stmt 0 view .LVU115
+ 504 02a8 2946     		mov	r1, r5
+ 505 02aa 2046     		mov	r0, r4
+ 506 02ac FFF7FEFF 		bl	strtod
+ 507              	.LVL53:
+ 508 02b0 51EC100B 		vmov	r0, r1, d0
+ 509 02b4 FFF7FEFF 		bl	__aeabi_d2f
+ 510              	.LVL54:
+ 403:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[2] = 1;
+ 511              		.loc 1 403 20 view .LVU116
+ 512 02b8 104B     		ldr	r3, .L36+56
+ 513 02ba 9860     		str	r0, [r3, #8]	@ float
+ 404:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 514              		.loc 1 404 10 is_stmt 1 view .LVU117
+ 404:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 515              		.loc 1 404 27 is_stmt 0 view .LVU118
+ 516 02bc 074B     		ldr	r3, .L36+24
+ 517 02be 0122     		movs	r2, #1
+ 518 02c0 9A70     		strb	r2, [r3, #2]
+ 405:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ 519              		.loc 1 405 10 is_stmt 1 view .LVU119
+ 520 02c2 F5E6     		b	.L14
+ 521              	.L37:
+ 522              		.align	2
+ 523              	.L36:
+ 524 02c4 00000000 		.word	.LC0
+ 525 02c8 00000000 		.word	config_options
+ 526 02cc 00000000 		.word	txconfig_options_ch9
+ 527 02d0 00000000 		.word	.LANCHOR0
+ 528 02d4 00000000 		.word	.LANCHOR1
+ 529 02d8 00000000 		.word	.LANCHOR2
+ 530 02dc 00000000 		.word	.LANCHOR3
+ 531 02e0 00000000 		.word	.LANCHOR4
+ 532 02e4 00000000 		.word	.LANCHOR5
+ 533 02e8 00000000 		.word	.LANCHOR6
+ 534 02ec 1C000000 		.word	.LC1
+ 535 02f0 30000000 		.word	.LC2
+ 536 02f4 00000000 		.word	txconfig_options
+ 537 02f8 00000000 		.word	.LANCHOR15
+ 538 02fc 00000000 		.word	.LANCHOR18
+ 539 0300 00000000 		.word	.LANCHOR17
+ 540 0304 00000000 		.word	.LANCHOR10
+ 541 0308 00000000 		.word	.LANCHOR11
+ARM GAS  /tmp/ccMAsx9I.s 			page 21
+
+
+ 542 030c 00000000 		.word	.LANCHOR12
+ 543 0310 00000000 		.word	.LANCHOR16
+ 544 0314 00000000 		.word	.LANCHOR19
+ 545 0318 00000000 		.word	.LANCHOR20
+ 546 031c 00000000 		.word	.LANCHOR21
+ 547 0320 00000000 		.word	.LANCHOR22
+ 548              	.L24:
+ 407:Core/Src/get_msg_from_anchors2.c **** 									distances_F[2] = strtod(distance, &eptr);
+ 549              		.loc 1 407 10 view .LVU120
+ 550 0324 9F4C     		ldr	r4, .L38
+ 551 0326 A04E     		ldr	r6, .L38+4
+ 552 0328 2246     		mov	r2, r4
+ 553 032a 3146     		mov	r1, r6
+ 554 032c 9F48     		ldr	r0, .L38+8
+ 555 032e FFF7FEFF 		bl	split_dist_rssi
+ 556              	.LVL55:
+ 408:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[2] = strtod(rssi, &eptr);
+ 557              		.loc 1 408 10 view .LVU121
+ 408:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[2] = strtod(rssi, &eptr);
+ 558              		.loc 1 408 27 is_stmt 0 view .LVU122
+ 559 0332 9F4D     		ldr	r5, .L38+12
+ 560 0334 2946     		mov	r1, r5
+ 561 0336 3046     		mov	r0, r6
+ 562 0338 FFF7FEFF 		bl	strtod
+ 563              	.LVL56:
+ 564 033c 51EC100B 		vmov	r0, r1, d0
+ 565 0340 FFF7FEFF 		bl	__aeabi_d2f
+ 566              	.LVL57:
+ 408:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[2] = strtod(rssi, &eptr);
+ 567              		.loc 1 408 25 view .LVU123
+ 568 0344 9B4B     		ldr	r3, .L38+16
+ 569 0346 9860     		str	r0, [r3, #8]	@ float
+ 409:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[2] = 1;
+ 570              		.loc 1 409 10 is_stmt 1 view .LVU124
+ 409:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[2] = 1;
+ 571              		.loc 1 409 22 is_stmt 0 view .LVU125
+ 572 0348 2946     		mov	r1, r5
+ 573 034a 2046     		mov	r0, r4
+ 574 034c FFF7FEFF 		bl	strtod
+ 575              	.LVL58:
+ 576 0350 51EC100B 		vmov	r0, r1, d0
+ 577 0354 FFF7FEFF 		bl	__aeabi_d2f
+ 578              	.LVL59:
+ 409:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[2] = 1;
+ 579              		.loc 1 409 20 view .LVU126
+ 580 0358 974B     		ldr	r3, .L38+20
+ 581 035a 9860     		str	r0, [r3, #8]	@ float
+ 410:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 582              		.loc 1 410 10 is_stmt 1 view .LVU127
+ 410:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 583              		.loc 1 410 27 is_stmt 0 view .LVU128
+ 584 035c 974B     		ldr	r3, .L38+24
+ 585 035e 0122     		movs	r2, #1
+ 586 0360 9A70     		strb	r2, [r3, #2]
+ 411:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 587              		.loc 1 411 10 is_stmt 1 view .LVU129
+ 588 0362 A5E6     		b	.L14
+ARM GAS  /tmp/ccMAsx9I.s 			page 22
+
+
+ 589              	.L25:
+ 413:Core/Src/get_msg_from_anchors2.c **** 									distances_G[2] = strtod(distance, &eptr);
+ 590              		.loc 1 413 10 view .LVU130
+ 591 0364 8F4C     		ldr	r4, .L38
+ 592 0366 904E     		ldr	r6, .L38+4
+ 593 0368 2246     		mov	r2, r4
+ 594 036a 3146     		mov	r1, r6
+ 595 036c 8F48     		ldr	r0, .L38+8
+ 596 036e FFF7FEFF 		bl	split_dist_rssi
+ 597              	.LVL60:
+ 414:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[2] = strtod(rssi, &eptr);
+ 598              		.loc 1 414 10 view .LVU131
+ 414:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[2] = strtod(rssi, &eptr);
+ 599              		.loc 1 414 27 is_stmt 0 view .LVU132
+ 600 0372 8F4D     		ldr	r5, .L38+12
+ 601 0374 2946     		mov	r1, r5
+ 602 0376 3046     		mov	r0, r6
+ 603 0378 FFF7FEFF 		bl	strtod
+ 604              	.LVL61:
+ 605 037c 51EC100B 		vmov	r0, r1, d0
+ 606 0380 FFF7FEFF 		bl	__aeabi_d2f
+ 607              	.LVL62:
+ 414:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[2] = strtod(rssi, &eptr);
+ 608              		.loc 1 414 25 view .LVU133
+ 609 0384 8E4B     		ldr	r3, .L38+28
+ 610 0386 9860     		str	r0, [r3, #8]	@ float
+ 415:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[2] = 1;
+ 611              		.loc 1 415 10 is_stmt 1 view .LVU134
+ 415:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[2] = 1;
+ 612              		.loc 1 415 22 is_stmt 0 view .LVU135
+ 613 0388 2946     		mov	r1, r5
+ 614 038a 2046     		mov	r0, r4
+ 615 038c FFF7FEFF 		bl	strtod
+ 616              	.LVL63:
+ 617 0390 51EC100B 		vmov	r0, r1, d0
+ 618 0394 FFF7FEFF 		bl	__aeabi_d2f
+ 619              	.LVL64:
+ 415:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[2] = 1;
+ 620              		.loc 1 415 20 view .LVU136
+ 621 0398 8A4B     		ldr	r3, .L38+32
+ 622 039a 9860     		str	r0, [r3, #8]	@ float
+ 416:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 623              		.loc 1 416 10 is_stmt 1 view .LVU137
+ 416:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 624              		.loc 1 416 27 is_stmt 0 view .LVU138
+ 625 039c 8A4B     		ldr	r3, .L38+36
+ 626 039e 0122     		movs	r2, #1
+ 627 03a0 9A70     		strb	r2, [r3, #2]
+ 417:Core/Src/get_msg_from_anchors2.c **** 							}
+ 628              		.loc 1 417 10 is_stmt 1 view .LVU139
+ 629 03a2 85E6     		b	.L14
+ 630              	.L15:
+ 421:Core/Src/get_msg_from_anchors2.c **** 							{
+ 631              		.loc 1 421 8 view .LVU140
+ 632 03a4 462B     		cmp	r3, #70
+ 633 03a6 24D0     		beq	.L26
+ 634 03a8 472B     		cmp	r3, #71
+ARM GAS  /tmp/ccMAsx9I.s 			page 23
+
+
+ 635 03aa 42D0     		beq	.L27
+ 636 03ac 452B     		cmp	r3, #69
+ 637 03ae 7FF47FAE 		bne	.L14
+ 424:Core/Src/get_msg_from_anchors2.c **** 									distances_E[3] = strtod(distance, &eptr);
+ 638              		.loc 1 424 10 view .LVU141
+ 639 03b2 7C4C     		ldr	r4, .L38
+ 640 03b4 7C4E     		ldr	r6, .L38+4
+ 641 03b6 2246     		mov	r2, r4
+ 642 03b8 3146     		mov	r1, r6
+ 643 03ba 7C48     		ldr	r0, .L38+8
+ 644 03bc FFF7FEFF 		bl	split_dist_rssi
+ 645              	.LVL65:
+ 425:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[3] = strtod(rssi, &eptr);
+ 646              		.loc 1 425 10 view .LVU142
+ 425:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[3] = strtod(rssi, &eptr);
+ 647              		.loc 1 425 27 is_stmt 0 view .LVU143
+ 648 03c0 7B4D     		ldr	r5, .L38+12
+ 649 03c2 2946     		mov	r1, r5
+ 650 03c4 3046     		mov	r0, r6
+ 651 03c6 FFF7FEFF 		bl	strtod
+ 652              	.LVL66:
+ 653 03ca 51EC100B 		vmov	r0, r1, d0
+ 654 03ce FFF7FEFF 		bl	__aeabi_d2f
+ 655              	.LVL67:
+ 425:Core/Src/get_msg_from_anchors2.c **** 									rssi_E[3] = strtod(rssi, &eptr);
+ 656              		.loc 1 425 25 view .LVU144
+ 657 03d2 7E4B     		ldr	r3, .L38+40
+ 658 03d4 D860     		str	r0, [r3, #12]	@ float
+ 426:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[3] = 1;
+ 659              		.loc 1 426 10 is_stmt 1 view .LVU145
+ 426:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[3] = 1;
+ 660              		.loc 1 426 22 is_stmt 0 view .LVU146
+ 661 03d6 2946     		mov	r1, r5
+ 662 03d8 2046     		mov	r0, r4
+ 663 03da FFF7FEFF 		bl	strtod
+ 664              	.LVL68:
+ 665 03de 51EC100B 		vmov	r0, r1, d0
+ 666 03e2 FFF7FEFF 		bl	__aeabi_d2f
+ 667              	.LVL69:
+ 426:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_E[3] = 1;
+ 668              		.loc 1 426 20 view .LVU147
+ 669 03e6 7A4B     		ldr	r3, .L38+44
+ 670 03e8 D860     		str	r0, [r3, #12]	@ float
+ 427:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 671              		.loc 1 427 10 is_stmt 1 view .LVU148
+ 427:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 672              		.loc 1 427 27 is_stmt 0 view .LVU149
+ 673 03ea 7A4B     		ldr	r3, .L38+48
+ 674 03ec 0122     		movs	r2, #1
+ 675 03ee DA70     		strb	r2, [r3, #3]
+ 428:Core/Src/get_msg_from_anchors2.c **** 								case 'F':
+ 676              		.loc 1 428 10 is_stmt 1 view .LVU150
+ 677 03f0 5EE6     		b	.L14
+ 678              	.L26:
+ 430:Core/Src/get_msg_from_anchors2.c **** 									distances_F[3] = strtod(distance, &eptr);
+ 679              		.loc 1 430 10 view .LVU151
+ 680 03f2 6C4C     		ldr	r4, .L38
+ARM GAS  /tmp/ccMAsx9I.s 			page 24
+
+
+ 681 03f4 6C4E     		ldr	r6, .L38+4
+ 682 03f6 2246     		mov	r2, r4
+ 683 03f8 3146     		mov	r1, r6
+ 684 03fa 6C48     		ldr	r0, .L38+8
+ 685 03fc FFF7FEFF 		bl	split_dist_rssi
+ 686              	.LVL70:
+ 431:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[3] = strtod(rssi, &eptr);
+ 687              		.loc 1 431 10 view .LVU152
+ 431:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[3] = strtod(rssi, &eptr);
+ 688              		.loc 1 431 27 is_stmt 0 view .LVU153
+ 689 0400 6B4D     		ldr	r5, .L38+12
+ 690 0402 2946     		mov	r1, r5
+ 691 0404 3046     		mov	r0, r6
+ 692 0406 FFF7FEFF 		bl	strtod
+ 693              	.LVL71:
+ 694 040a 51EC100B 		vmov	r0, r1, d0
+ 695 040e FFF7FEFF 		bl	__aeabi_d2f
+ 696              	.LVL72:
+ 431:Core/Src/get_msg_from_anchors2.c **** 									rssi_F[3] = strtod(rssi, &eptr);
+ 697              		.loc 1 431 25 view .LVU154
+ 698 0412 684B     		ldr	r3, .L38+16
+ 699 0414 D860     		str	r0, [r3, #12]	@ float
+ 432:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[3] = 1;
+ 700              		.loc 1 432 10 is_stmt 1 view .LVU155
+ 432:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[3] = 1;
+ 701              		.loc 1 432 22 is_stmt 0 view .LVU156
+ 702 0416 2946     		mov	r1, r5
+ 703 0418 2046     		mov	r0, r4
+ 704 041a FFF7FEFF 		bl	strtod
+ 705              	.LVL73:
+ 706 041e 51EC100B 		vmov	r0, r1, d0
+ 707 0422 FFF7FEFF 		bl	__aeabi_d2f
+ 708              	.LVL74:
+ 432:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_F[3] = 1;
+ 709              		.loc 1 432 20 view .LVU157
+ 710 0426 644B     		ldr	r3, .L38+20
+ 711 0428 D860     		str	r0, [r3, #12]	@ float
+ 433:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 712              		.loc 1 433 10 is_stmt 1 view .LVU158
+ 433:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 713              		.loc 1 433 27 is_stmt 0 view .LVU159
+ 714 042a 644B     		ldr	r3, .L38+24
+ 715 042c 0122     		movs	r2, #1
+ 716 042e DA70     		strb	r2, [r3, #3]
+ 434:Core/Src/get_msg_from_anchors2.c **** 								case 'G':
+ 717              		.loc 1 434 10 is_stmt 1 view .LVU160
+ 718 0430 3EE6     		b	.L14
+ 719              	.L27:
+ 436:Core/Src/get_msg_from_anchors2.c **** 									distances_G[3] = strtod(distance, &eptr);
+ 720              		.loc 1 436 10 view .LVU161
+ 721 0432 5C4C     		ldr	r4, .L38
+ 722 0434 5C4E     		ldr	r6, .L38+4
+ 723 0436 2246     		mov	r2, r4
+ 724 0438 3146     		mov	r1, r6
+ 725 043a 5C48     		ldr	r0, .L38+8
+ 726 043c FFF7FEFF 		bl	split_dist_rssi
+ 727              	.LVL75:
+ARM GAS  /tmp/ccMAsx9I.s 			page 25
+
+
+ 437:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[3] = strtod(rssi, &eptr);
+ 728              		.loc 1 437 10 view .LVU162
+ 437:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[3] = strtod(rssi, &eptr);
+ 729              		.loc 1 437 27 is_stmt 0 view .LVU163
+ 730 0440 5B4D     		ldr	r5, .L38+12
+ 731 0442 2946     		mov	r1, r5
+ 732 0444 3046     		mov	r0, r6
+ 733 0446 FFF7FEFF 		bl	strtod
+ 734              	.LVL76:
+ 735 044a 51EC100B 		vmov	r0, r1, d0
+ 736 044e FFF7FEFF 		bl	__aeabi_d2f
+ 737              	.LVL77:
+ 437:Core/Src/get_msg_from_anchors2.c **** 									rssi_G[3] = strtod(rssi, &eptr);
+ 738              		.loc 1 437 25 view .LVU164
+ 739 0452 5B4B     		ldr	r3, .L38+28
+ 740 0454 D860     		str	r0, [r3, #12]	@ float
+ 438:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[3] = 1;
+ 741              		.loc 1 438 10 is_stmt 1 view .LVU165
+ 438:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[3] = 1;
+ 742              		.loc 1 438 22 is_stmt 0 view .LVU166
+ 743 0456 2946     		mov	r1, r5
+ 744 0458 2046     		mov	r0, r4
+ 745 045a FFF7FEFF 		bl	strtod
+ 746              	.LVL78:
+ 747 045e 51EC100B 		vmov	r0, r1, d0
+ 748 0462 FFF7FEFF 		bl	__aeabi_d2f
+ 749              	.LVL79:
+ 438:Core/Src/get_msg_from_anchors2.c **** 									lookUpTable_G[3] = 1;
+ 750              		.loc 1 438 20 view .LVU167
+ 751 0466 574B     		ldr	r3, .L38+32
+ 752 0468 D860     		str	r0, [r3, #12]	@ float
+ 439:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 753              		.loc 1 439 10 is_stmt 1 view .LVU168
+ 439:Core/Src/get_msg_from_anchors2.c **** 									break;
+ 754              		.loc 1 439 27 is_stmt 0 view .LVU169
+ 755 046a 574B     		ldr	r3, .L38+36
+ 756 046c 0122     		movs	r2, #1
+ 757 046e DA70     		strb	r2, [r3, #3]
+ 440:Core/Src/get_msg_from_anchors2.c **** 							}
+ 758              		.loc 1 440 10 is_stmt 1 view .LVU170
+ 759 0470 1EE6     		b	.L14
+ 760              	.L28:
+ 505:Core/Src/get_msg_from_anchors2.c **** 
+ 506:Core/Src/get_msg_from_anchors2.c ****                 	}
+ 507:Core/Src/get_msg_from_anchors2.c ****                 	else if (allTrue(lookUpTable_F, NUMBER_OF_ANCHORS))
+ 761              		.loc 1 507 23 view .LVU171
+ 762              		.loc 1 507 27 is_stmt 0 view .LVU172
+ 763 0472 0421     		movs	r1, #4
+ 764 0474 5148     		ldr	r0, .L38+24
+ 765 0476 FFF7FEFF 		bl	allTrue
+ 766              	.LVL80:
+ 767              		.loc 1 507 26 view .LVU173
+ 768 047a A0B1     		cbz	r0, .L30
+ 508:Core/Src/get_msg_from_anchors2.c **** 					{
+ 509:Core/Src/get_msg_from_anchors2.c **** 						#if NUMBER_OF_ANCHORS == 4
+ 510:Core/Src/get_msg_from_anchors2.c ****                 			memset(allDistancesToPC_F, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
+ 769              		.loc 1 510 20 is_stmt 1 view .LVU174
+ARM GAS  /tmp/ccMAsx9I.s 			page 26
+
+
+ 770 047c 564C     		ldr	r4, .L38+52
+ 771 047e 4022     		movs	r2, #64
+ 772 0480 0021     		movs	r1, #0
+ 773 0482 2046     		mov	r0, r4
+ 774 0484 FFF7FEFF 		bl	memset
+ 775              	.LVL81:
+ 511:Core/Src/get_msg_from_anchors2.c ****                 			memset(lookUpTable_F, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 776              		.loc 1 511 20 view .LVU175
+ 777 0488 4C4B     		ldr	r3, .L38+24
+ 778 048a 0022     		movs	r2, #0
+ 779 048c 1A60     		str	r2, [r3]
+ 512:Core/Src/get_msg_from_anchors2.c **** 						#elif NUMBER_OF_ANCHORS == 6
+ 513:Core/Src/get_msg_from_anchors2.c ****                 			memset(allDistancesToPC_F, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
+ 514:Core/Src/get_msg_from_anchors2.c **** 							memset(lookUpTable_F, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 515:Core/Src/get_msg_from_anchors2.c **** 						#endif
+ 516:Core/Src/get_msg_from_anchors2.c **** 						concatenateDistancesAndRssiToString(distances_F, rssi_F, allDistancesToPC_F, NUMBER_OF_ANCHOR
+ 780              		.loc 1 516 7 view .LVU176
+ 781 048e 534B     		ldr	r3, .L38+56
+ 782 0490 0093     		str	r3, [sp]
+ 783 0492 0423     		movs	r3, #4
+ 784 0494 2246     		mov	r2, r4
+ 785 0496 4849     		ldr	r1, .L38+20
+ 786 0498 4648     		ldr	r0, .L38+16
+ 787 049a FFF7FEFF 		bl	concatenateDistancesAndRssiToString
+ 788              	.LVL82:
+ 517:Core/Src/get_msg_from_anchors2.c **** 						test_run_info_DMA((unsigned char *)allDistancesToPC_F);
+ 789              		.loc 1 517 7 view .LVU177
+ 790 049e 2046     		mov	r0, r4
+ 791 04a0 FFF7FEFF 		bl	test_run_info_DMA
+ 792              	.LVL83:
+ 793 04a4 22E0     		b	.L9
+ 794              	.L30:
+ 518:Core/Src/get_msg_from_anchors2.c **** 
+ 519:Core/Src/get_msg_from_anchors2.c **** 					}
+ 520:Core/Src/get_msg_from_anchors2.c ****                 	else if (allTrue(lookUpTable_G, NUMBER_OF_ANCHORS))
+ 795              		.loc 1 520 23 view .LVU178
+ 796              		.loc 1 520 27 is_stmt 0 view .LVU179
+ 797 04a6 0421     		movs	r1, #4
+ 798 04a8 4748     		ldr	r0, .L38+36
+ 799 04aa FFF7FEFF 		bl	allTrue
+ 800              	.LVL84:
+ 801              		.loc 1 520 26 view .LVU180
+ 802 04ae E8B1     		cbz	r0, .L9
+ 521:Core/Src/get_msg_from_anchors2.c **** 					{
+ 522:Core/Src/get_msg_from_anchors2.c **** 						#if NUMBER_OF_ANCHORS == 4
+ 523:Core/Src/get_msg_from_anchors2.c ****                 			memset(allDistancesToPC_G, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
+ 803              		.loc 1 523 20 is_stmt 1 view .LVU181
+ 804 04b0 4B4C     		ldr	r4, .L38+60
+ 805 04b2 4022     		movs	r2, #64
+ 806 04b4 0021     		movs	r1, #0
+ 807 04b6 2046     		mov	r0, r4
+ 808 04b8 FFF7FEFF 		bl	memset
+ 809              	.LVL85:
+ 524:Core/Src/get_msg_from_anchors2.c ****                 			memset(lookUpTable_G, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 810              		.loc 1 524 20 view .LVU182
+ 811 04bc 424B     		ldr	r3, .L38+36
+ 812 04be 0022     		movs	r2, #0
+ARM GAS  /tmp/ccMAsx9I.s 			page 27
+
+
+ 813 04c0 1A60     		str	r2, [r3]
+ 525:Core/Src/get_msg_from_anchors2.c **** 						#elif NUMBER_OF_ANCHORS == 6
+ 526:Core/Src/get_msg_from_anchors2.c ****                 			memset(allDistancesToPC_G, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
+ 527:Core/Src/get_msg_from_anchors2.c **** 							memset(lookUpTable_G, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
+ 528:Core/Src/get_msg_from_anchors2.c **** 						#endif
+ 529:Core/Src/get_msg_from_anchors2.c **** 						concatenateDistancesAndRssiToString(distances_G, rssi_G, allDistancesToPC_G, NUMBER_OF_ANCHOR
+ 814              		.loc 1 529 7 view .LVU183
+ 815 04c2 464B     		ldr	r3, .L38+56
+ 816 04c4 0093     		str	r3, [sp]
+ 817 04c6 0423     		movs	r3, #4
+ 818 04c8 2246     		mov	r2, r4
+ 819 04ca 3E49     		ldr	r1, .L38+32
+ 820 04cc 3C48     		ldr	r0, .L38+28
+ 821 04ce FFF7FEFF 		bl	concatenateDistancesAndRssiToString
+ 822              	.LVL86:
+ 530:Core/Src/get_msg_from_anchors2.c **** 						test_run_info_DMA((unsigned char *)allDistancesToPC_G);
+ 823              		.loc 1 530 7 view .LVU184
+ 824 04d2 2046     		mov	r0, r4
+ 825 04d4 FFF7FEFF 		bl	test_run_info_DMA
+ 826              	.LVL87:
+ 827 04d8 08E0     		b	.L9
+ 828              	.L13:
+ 531:Core/Src/get_msg_from_anchors2.c **** 
+ 532:Core/Src/get_msg_from_anchors2.c **** 					}
+ 533:Core/Src/get_msg_from_anchors2.c **** /*
+ 534:Core/Src/get_msg_from_anchors2.c ****  * Ta sekcja mierzy czas zdobycia wszystkich pomiarów(nie jest to dokończone, nie bedzie działa�
+ 535:Core/Src/get_msg_from_anchors2.c ****  */
+ 536:Core/Src/get_msg_from_anchors2.c ****  #if 0
+ 537:Core/Src/get_msg_from_anchors2.c ****                 	if (allTrue(lookUpTable, NUMBER_OF_ANCHORS))
+ 538:Core/Src/get_msg_from_anchors2.c ****                 	{
+ 539:Core/Src/get_msg_from_anchors2.c ****                 		concatenateDistancesToString(distances, allDistancesToPC, NUMBER_OF_ANCHORS);
+ 540:Core/Src/get_msg_from_anchors2.c ****                 		test_run_info((unsigned char *)allDistancesToPC);
+ 541:Core/Src/get_msg_from_anchors2.c **** 	#if NUMBER_OF_ANCHORS == 4
+ 542:Core/Src/get_msg_from_anchors2.c ****                 		memset(allDistancesToPC, '\0', 32*sizeof(char));
+ 543:Core/Src/get_msg_from_anchors2.c ****                 		memset(lookUpTable, 0, 4*sizeof(uint8_t));
+ 544:Core/Src/get_msg_from_anchors2.c **** 	#elif NUMBER_OF_ANCHORS == 6
+ 545:Core/Src/get_msg_from_anchors2.c ****                 		memset(allDistancesToPC, '\0', 64*sizeof(char));
+ 546:Core/Src/get_msg_from_anchors2.c **** 						memset(lookUpTable, 0, 6*sizeof(uint8_t));
+ 547:Core/Src/get_msg_from_anchors2.c **** 	#endif
+ 548:Core/Src/get_msg_from_anchors2.c **** 	#if 0
+ 549:Core/Src/get_msg_from_anchors2.c ****                 		if(i%2 == 0)
+ 550:Core/Src/get_msg_from_anchors2.c ****                 		{
+ 551:Core/Src/get_msg_from_anchors2.c ****                 			timetick_1 = __HAL_TIM_GET_COUNTER(&htim2);
+ 552:Core/Src/get_msg_from_anchors2.c ****                 		}
+ 553:Core/Src/get_msg_from_anchors2.c ****                 		else
+ 554:Core/Src/get_msg_from_anchors2.c ****                 		{
+ 555:Core/Src/get_msg_from_anchors2.c ****                 			timetick_2 = __HAL_TIM_GET_COUNTER(&htim2);
+ 556:Core/Src/get_msg_from_anchors2.c ****                 		}
+ 557:Core/Src/get_msg_from_anchors2.c ****                 		if(i>=1)
+ 558:Core/Src/get_msg_from_anchors2.c **** 						{
+ 559:Core/Src/get_msg_from_anchors2.c **** 							if(i%2==0)
+ 560:Core/Src/get_msg_from_anchors2.c **** 							{
+ 561:Core/Src/get_msg_from_anchors2.c **** 								diff = timetick_1 - timetick_2;
+ 562:Core/Src/get_msg_from_anchors2.c **** 							}
+ 563:Core/Src/get_msg_from_anchors2.c **** 							else
+ 564:Core/Src/get_msg_from_anchors2.c **** 							{
+ 565:Core/Src/get_msg_from_anchors2.c **** 								diff = timetick_2 - timetick_1;
+ARM GAS  /tmp/ccMAsx9I.s 			page 28
+
+
+ 566:Core/Src/get_msg_from_anchors2.c **** 							}
+ 567:Core/Src/get_msg_from_anchors2.c **** 							sprintf(time, "%ld", diff);
+ 568:Core/Src/get_msg_from_anchors2.c **** 							test_run_info((unsigned char *)time);
+ 569:Core/Src/get_msg_from_anchors2.c **** 							memset(time, '\0', 16*sizeof(char));
+ 570:Core/Src/get_msg_from_anchors2.c **** 						}
+ 571:Core/Src/get_msg_from_anchors2.c ****                 		i++;
+ 572:Core/Src/get_msg_from_anchors2.c **** 	#endif
+ 573:Core/Src/get_msg_from_anchors2.c ****                 	}
+ 574:Core/Src/get_msg_from_anchors2.c ****  #endif
+ 575:Core/Src/get_msg_from_anchors2.c **** #endif
+ 576:Core/Src/get_msg_from_anchors2.c ****                 }
+ 577:Core/Src/get_msg_from_anchors2.c ****                 else
+ 578:Core/Src/get_msg_from_anchors2.c ****                 {
+ 579:Core/Src/get_msg_from_anchors2.c ****                 	//test_run_info((unsigned char *)"Jestem4");
+ 580:Core/Src/get_msg_from_anchors2.c ****                     errors[BAD_FRAME_ERR_IDX] += 1;
+ 829              		.loc 1 580 21 view .LVU185
+ 830              		.loc 1 580 47 is_stmt 0 view .LVU186
+ 831 04da 424A     		ldr	r2, .L38+64
+ 832 04dc 936A     		ldr	r3, [r2, #40]
+ 833 04de 0133     		adds	r3, r3, #1
+ 834 04e0 9362     		str	r3, [r2, #40]
+ 835 04e2 03E0     		b	.L9
+ 836              	.LVL88:
+ 837              	.L12:
+ 581:Core/Src/get_msg_from_anchors2.c ****                     /*
+ 582:Core/Src/get_msg_from_anchors2.c ****                      * If any error occurs, we can reset the STS count back to default value.
+ 583:Core/Src/get_msg_from_anchors2.c ****                      */
+ 584:Core/Src/get_msg_from_anchors2.c ****                     //messageFlag = 0;
+ 585:Core/Src/get_msg_from_anchors2.c ****                 }
+ 586:Core/Src/get_msg_from_anchors2.c ****             }
+ 587:Core/Src/get_msg_from_anchors2.c ****             else
+ 588:Core/Src/get_msg_from_anchors2.c ****             {
+ 589:Core/Src/get_msg_from_anchors2.c ****             	//test_run_info((unsigned char *)"Jestem5");
+ 590:Core/Src/get_msg_from_anchors2.c ****                 errors[RTO_ERR_IDX] += 1;
+ 838              		.loc 1 590 17 is_stmt 1 view .LVU187
+ 839              		.loc 1 590 37 is_stmt 0 view .LVU188
+ 840 04e4 3F4A     		ldr	r2, .L38+64
+ 841 04e6 5369     		ldr	r3, [r2, #20]
+ 842 04e8 0133     		adds	r3, r3, #1
+ 843 04ea 5361     		str	r3, [r2, #20]
+ 844              	.LVL89:
+ 845              	.L9:
+ 846              		.loc 1 590 37 view .LVU189
+ 847              	.LBE2:
+ 271:Core/Src/get_msg_from_anchors2.c ****     {
+ 848              		.loc 1 271 2 is_stmt 1 view .LVU190
+ 274:Core/Src/get_msg_from_anchors2.c **** 
+ 849              		.loc 1 274 3 view .LVU191
+ 850 04ec 0020     		movs	r0, #0
+ 851 04ee FFF7FEFF 		bl	dwt_rxenable
+ 852              	.LVL90:
+ 277:Core/Src/get_msg_from_anchors2.c ****         { };
+ 853              		.loc 1 277 9 view .LVU192
+ 854              	.L10:
+ 278:Core/Src/get_msg_from_anchors2.c **** 
+ 855              		.loc 1 278 11 discriminator 1 view .LVU193
+ 277:Core/Src/get_msg_from_anchors2.c ****         { };
+ARM GAS  /tmp/ccMAsx9I.s 			page 29
+
+
+ 856              		.loc 1 277 15 discriminator 1 view .LVU194
+ 277:Core/Src/get_msg_from_anchors2.c ****         { };
+ 857              		.loc 1 277 32 is_stmt 0 discriminator 1 view .LVU195
+ 858 04f2 0021     		movs	r1, #0
+ 859 04f4 4420     		movs	r0, #68
+ 860 04f6 FFF7FEFF 		bl	dwt_read32bitoffsetreg
+ 861              	.LVL91:
+ 277:Core/Src/get_msg_from_anchors2.c ****         { };
+ 862              		.loc 1 277 30 discriminator 1 view .LVU196
+ 863 04fa 3B4B     		ldr	r3, .L38+68
+ 864 04fc 1860     		str	r0, [r3]
+ 277:Core/Src/get_msg_from_anchors2.c ****         { };
+ 865              		.loc 1 277 65 discriminator 1 view .LVU197
+ 866 04fe 3B4B     		ldr	r3, .L38+72
+ 867 0500 0340     		ands	r3, r3, r0
+ 277:Core/Src/get_msg_from_anchors2.c ****         { };
+ 868              		.loc 1 277 15 discriminator 1 view .LVU198
+ 869 0502 002B     		cmp	r3, #0
+ 870 0504 F5D0     		beq	.L10
+ 278:Core/Src/get_msg_from_anchors2.c **** 
+ 871              		.loc 1 278 12 is_stmt 1 view .LVU199
+ 283:Core/Src/get_msg_from_anchors2.c ****         {
+ 872              		.loc 1 283 9 view .LVU200
+ 283:Core/Src/get_msg_from_anchors2.c ****         {
+ 873              		.loc 1 283 12 is_stmt 0 view .LVU201
+ 874 0506 10F4804F 		tst	r0, #16384
+ 875 050a 45D0     		beq	.L11
+ 876              	.LBB3:
+ 286:Core/Src/get_msg_from_anchors2.c **** 
+ 877              		.loc 1 286 13 is_stmt 1 view .LVU202
+ 289:Core/Src/get_msg_from_anchors2.c **** 
+ 878              		.loc 1 289 13 view .LVU203
+ 879 050c 4FF48042 		mov	r2, #16384
+ 880 0510 0021     		movs	r1, #0
+ 881 0512 4420     		movs	r0, #68
+ 882 0514 FFF7FEFF 		bl	dwt_write32bitoffsetreg
+ 883              	.LVL92:
+ 292:Core/Src/get_msg_from_anchors2.c ****             if (frame_len <= sizeof(rx_buffer))
+ 884              		.loc 1 292 13 view .LVU204
+ 292:Core/Src/get_msg_from_anchors2.c ****             if (frame_len <= sizeof(rx_buffer))
+ 885              		.loc 1 292 25 is_stmt 0 view .LVU205
+ 886 0518 0021     		movs	r1, #0
+ 887 051a 4C20     		movs	r0, #76
+ 888 051c FFF7FEFF 		bl	dwt_read32bitoffsetreg
+ 889              	.LVL93:
+ 292:Core/Src/get_msg_from_anchors2.c ****             if (frame_len <= sizeof(rx_buffer))
+ 890              		.loc 1 292 23 view .LVU206
+ 891 0520 00F07F01 		and	r1, r0, #127
+ 892              	.LVL94:
+ 293:Core/Src/get_msg_from_anchors2.c ****             {
+ 893              		.loc 1 293 13 is_stmt 1 view .LVU207
+ 293:Core/Src/get_msg_from_anchors2.c ****             {
+ 894              		.loc 1 293 16 is_stmt 0 view .LVU208
+ 895 0524 1E29     		cmp	r1, #30
+ 896 0526 DDD8     		bhi	.L12
+ 296:Core/Src/get_msg_from_anchors2.c **** 
+ 897              		.loc 1 296 17 is_stmt 1 view .LVU209
+ARM GAS  /tmp/ccMAsx9I.s 			page 30
+
+
+ 898 0528 314C     		ldr	r4, .L38+76
+ 899 052a 0022     		movs	r2, #0
+ 900 052c 2046     		mov	r0, r4
+ 901 052e FFF7FEFF 		bl	dwt_readrxdata
+ 902              	.LVL95:
+ 300:Core/Src/get_msg_from_anchors2.c **** 
+ 903              		.loc 1 300 17 view .LVU210
+ 300:Core/Src/get_msg_from_anchors2.c **** 
+ 904              		.loc 1 300 43 is_stmt 0 view .LVU211
+ 905 0532 0023     		movs	r3, #0
+ 906 0534 A370     		strb	r3, [r4, #2]
+ 302:Core/Src/get_msg_from_anchors2.c ****                 {
+ 907              		.loc 1 302 17 is_stmt 1 view .LVU212
+ 302:Core/Src/get_msg_from_anchors2.c ****                 {
+ 908              		.loc 1 302 21 is_stmt 0 view .LVU213
+ 909 0536 0A22     		movs	r2, #10
+ 910 0538 2E49     		ldr	r1, .L38+80
+ 911 053a 2046     		mov	r0, r4
+ 912 053c FFF7FEFF 		bl	memcmp
+ 913              	.LVL96:
+ 302:Core/Src/get_msg_from_anchors2.c ****                 {
+ 914              		.loc 1 302 20 view .LVU214
+ 915 0540 0028     		cmp	r0, #0
+ 916 0542 CAD1     		bne	.L13
+ 343:Core/Src/get_msg_from_anchors2.c **** 					memset(distance, '\0', 6*sizeof(char));
+ 917              		.loc 1 343 6 is_stmt 1 view .LVU215
+ 918 0544 174A     		ldr	r2, .L38
+ 919 0546 0023     		movs	r3, #0
+ 920 0548 1360     		str	r3, [r2]
+ 921 054a 5360     		str	r3, [r2, #4]
+ 344:Core/Src/get_msg_from_anchors2.c **** 					memset(msg_to_PC, '\0', 20*sizeof(char));
+ 922              		.loc 1 344 6 view .LVU216
+ 923 054c 164A     		ldr	r2, .L38+4
+ 924 054e 1360     		str	r3, [r2]
+ 925 0550 9380     		strh	r3, [r2, #4]	@ movhi
+ 345:Core/Src/get_msg_from_anchors2.c **** 					indexTag = get_msg_toPC_2(msg_to_PC, rx_buffer, ANCHOR_IDX);
+ 926              		.loc 1 345 6 view .LVU217
+ 927 0552 164C     		ldr	r4, .L38+8
+ 928 0554 2360     		str	r3, [r4]
+ 929 0556 6360     		str	r3, [r4, #4]
+ 930 0558 A360     		str	r3, [r4, #8]
+ 931 055a E360     		str	r3, [r4, #12]
+ 932 055c 2361     		str	r3, [r4, #16]
+ 346:Core/Src/get_msg_from_anchors2.c ****                 	anchor = msg_to_PC[0];
+ 933              		.loc 1 346 6 view .LVU218
+ 346:Core/Src/get_msg_from_anchors2.c ****                 	anchor = msg_to_PC[0];
+ 934              		.loc 1 346 17 is_stmt 0 view .LVU219
+ 935 055e 0A22     		movs	r2, #10
+ 936 0560 2349     		ldr	r1, .L38+76
+ 937 0562 2046     		mov	r0, r4
+ 938 0564 FFF7FEFF 		bl	get_msg_toPC_2
+ 939              	.LVL97:
+ 346:Core/Src/get_msg_from_anchors2.c ****                 	anchor = msg_to_PC[0];
+ 940              		.loc 1 346 15 view .LVU220
+ 941 0568 234B     		ldr	r3, .L38+84
+ 942 056a 1870     		strb	r0, [r3]
+ 347:Core/Src/get_msg_from_anchors2.c ****                 	tag[0] = msg_to_PC[indexTag];
+ARM GAS  /tmp/ccMAsx9I.s 			page 31
+
+
+ 943              		.loc 1 347 18 is_stmt 1 view .LVU221
+ 347:Core/Src/get_msg_from_anchors2.c ****                 	tag[0] = msg_to_PC[indexTag];
+ 944              		.loc 1 347 36 is_stmt 0 view .LVU222
+ 945 056c 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 347:Core/Src/get_msg_from_anchors2.c ****                 	tag[0] = msg_to_PC[indexTag];
+ 946              		.loc 1 347 25 view .LVU223
+ 947 056e 234B     		ldr	r3, .L38+88
+ 948 0570 1A70     		strb	r2, [r3]
+ 348:Core/Src/get_msg_from_anchors2.c ****                 	switch (anchor)
+ 949              		.loc 1 348 18 is_stmt 1 view .LVU224
+ 348:Core/Src/get_msg_from_anchors2.c ****                 	switch (anchor)
+ 950              		.loc 1 348 36 is_stmt 0 view .LVU225
+ 951 0572 235C     		ldrb	r3, [r4, r0]	@ zero_extendqisi2
+ 348:Core/Src/get_msg_from_anchors2.c ****                 	switch (anchor)
+ 952              		.loc 1 348 25 view .LVU226
+ 953 0574 1949     		ldr	r1, .L38+56
+ 954 0576 0B70     		strb	r3, [r1]
+ 349:Core/Src/get_msg_from_anchors2.c ****                 	{
+ 955              		.loc 1 349 18 is_stmt 1 view .LVU227
+ 956 0578 413A     		subs	r2, r2, #65
+ 957 057a 032A     		cmp	r2, #3
+ 958 057c 3FF698AD 		bhi	.L14
+ 959 0580 01A1     		adr	r1, .L16
+ 960 0582 51F822F0 		ldr	pc, [r1, r2, lsl #2]
+ 961 0586 00BF     		.p2align 2
+ 962              	.L16:
+ 963 0588 A5000000 		.word	.L19+1
+ 964 058c A9010000 		.word	.L18+1
+ 965 0590 77020000 		.word	.L17+1
+ 966 0594 A5030000 		.word	.L15+1
+ 967              		.p2align 1
+ 968              	.L11:
+ 349:Core/Src/get_msg_from_anchors2.c ****                 	{
+ 969              		.loc 1 349 18 is_stmt 0 view .LVU228
+ 970              	.LBE3:
+ 591:Core/Src/get_msg_from_anchors2.c ****                 /*
+ 592:Core/Src/get_msg_from_anchors2.c ****                  * If any error occurs, we can reset the STS count back to default value.
+ 593:Core/Src/get_msg_from_anchors2.c ****                  */
+ 594:Core/Src/get_msg_from_anchors2.c ****                // messageFlag = 0;
+ 595:Core/Src/get_msg_from_anchors2.c ****             }
+ 596:Core/Src/get_msg_from_anchors2.c ****         }
+ 597:Core/Src/get_msg_from_anchors2.c ****         else
+ 598:Core/Src/get_msg_from_anchors2.c ****         {
+ 599:Core/Src/get_msg_from_anchors2.c ****         	//test_run_info((unsigned char *)"Jestem6");
+ 600:Core/Src/get_msg_from_anchors2.c **** #if 0
+ 601:Core/Src/get_msg_from_anchors2.c ****             check_for_status_errors(status_reg, errors);
+ 602:Core/Src/get_msg_from_anchors2.c **** 
+ 603:Core/Src/get_msg_from_anchors2.c ****             if (!(status_reg & SYS_STATUS_RXFCG_BIT_MASK))
+ 604:Core/Src/get_msg_from_anchors2.c ****             {
+ 605:Core/Src/get_msg_from_anchors2.c ****                 errors[BAD_FRAME_ERR_IDX] += 1;
+ 606:Core/Src/get_msg_from_anchors2.c ****             }
+ 607:Core/Src/get_msg_from_anchors2.c ****             if (goodSts < 0)
+ 608:Core/Src/get_msg_from_anchors2.c ****             {
+ 609:Core/Src/get_msg_from_anchors2.c ****                 errors[PREAMBLE_COUNT_ERR_IDX] += 1;
+ 610:Core/Src/get_msg_from_anchors2.c ****             }
+ 611:Core/Src/get_msg_from_anchors2.c ****             if (stsQual <= 0)
+ 612:Core/Src/get_msg_from_anchors2.c ****             {
+ARM GAS  /tmp/ccMAsx9I.s 			page 32
+
+
+ 613:Core/Src/get_msg_from_anchors2.c ****                 errors[CP_QUAL_ERR_IDX] += 1;
+ 614:Core/Src/get_msg_from_anchors2.c ****             }
+ 615:Core/Src/get_msg_from_anchors2.c **** #endif
+ 616:Core/Src/get_msg_from_anchors2.c ****             /* Clear RX error events in the DW IC status register. */
+ 617:Core/Src/get_msg_from_anchors2.c ****             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_ERR);
+ 971              		.loc 1 617 13 is_stmt 1 view .LVU229
+ 972 0598 194A     		ldr	r2, .L38+92
+ 973 059a 0021     		movs	r1, #0
+ 974 059c 4420     		movs	r0, #68
+ 975 059e FFF7FEFF 		bl	dwt_write32bitoffsetreg
+ 976              	.LVL98:
+ 977 05a2 A3E7     		b	.L9
+ 978              	.L39:
+ 979              		.align	2
+ 980              	.L38:
+ 981 05a4 00000000 		.word	.LANCHOR10
+ 982 05a8 00000000 		.word	.LANCHOR11
+ 983 05ac 00000000 		.word	.LANCHOR12
+ 984 05b0 00000000 		.word	.LANCHOR16
+ 985 05b4 00000000 		.word	.LANCHOR19
+ 986 05b8 00000000 		.word	.LANCHOR20
+ 987 05bc 00000000 		.word	.LANCHOR4
+ 988 05c0 00000000 		.word	.LANCHOR21
+ 989 05c4 00000000 		.word	.LANCHOR22
+ 990 05c8 00000000 		.word	.LANCHOR5
+ 991 05cc 00000000 		.word	.LANCHOR17
+ 992 05d0 00000000 		.word	.LANCHOR18
+ 993 05d4 00000000 		.word	.LANCHOR3
+ 994 05d8 00000000 		.word	.LANCHOR1
+ 995 05dc 00000000 		.word	.LANCHOR15
+ 996 05e0 00000000 		.word	.LANCHOR2
+ 997 05e4 00000000 		.word	.LANCHOR23
+ 998 05e8 00000000 		.word	.LANCHOR7
+ 999 05ec 00D02724 		.word	606588928
+ 1000 05f0 00000000 		.word	.LANCHOR8
+ 1001 05f4 00000000 		.word	.LANCHOR9
+ 1002 05f8 00000000 		.word	.LANCHOR13
+ 1003 05fc 00000000 		.word	.LANCHOR14
+ 1004 0600 00900524 		.word	604344320
+ 1005              		.cfi_endproc
+ 1006              	.LFE133:
+ 1008              		.global	distance
+ 1009              		.global	rssi
+ 1010              		.global	time
+ 1011              		.global	i
+ 1012              		.global	diff
+ 1013              		.global	timetick_2
+ 1014              		.global	timetick_1
+ 1015              		.global	msg_to_PC
+ 1016              		.global	eptr
+ 1017              		.global	indexTag
+ 1018              		.global	tag
+ 1019              		.global	anchor
+ 1020              		.global	rssi_G
+ 1021              		.global	distances_G
+ 1022              		.global	rssi_F
+ 1023              		.global	distances_F
+ARM GAS  /tmp/ccMAsx9I.s 			page 33
+
+
+ 1024              		.global	rssi_E
+ 1025              		.global	distances_E
+ 1026              		.global	lookUpTable_G
+ 1027              		.global	lookUpTable_F
+ 1028              		.global	lookUpTable_E
+ 1029              		.global	allDistancesToPC_G
+ 1030              		.global	allDistancesToPC_F
+ 1031              		.global	allDistancesToPC_E
+ 1032              		.section	.bss.allDistancesToPC_E,"aw",%nobits
+ 1033              		.align	2
+ 1034              		.set	.LANCHOR0,. + 0
+ 1037              	allDistancesToPC_E:
+ 1038 0000 00000000 		.space	64
+ 1038      00000000 
+ 1038      00000000 
+ 1038      00000000 
+ 1038      00000000 
+ 1039              		.section	.bss.allDistancesToPC_F,"aw",%nobits
+ 1040              		.align	2
+ 1041              		.set	.LANCHOR1,. + 0
+ 1044              	allDistancesToPC_F:
+ 1045 0000 00000000 		.space	64
+ 1045      00000000 
+ 1045      00000000 
+ 1045      00000000 
+ 1045      00000000 
+ 1046              		.section	.bss.allDistancesToPC_G,"aw",%nobits
+ 1047              		.align	2
+ 1048              		.set	.LANCHOR2,. + 0
+ 1051              	allDistancesToPC_G:
+ 1052 0000 00000000 		.space	64
+ 1052      00000000 
+ 1052      00000000 
+ 1052      00000000 
+ 1052      00000000 
+ 1053              		.section	.bss.anchor,"aw",%nobits
+ 1054              		.set	.LANCHOR14,. + 0
+ 1057              	anchor:
+ 1058 0000 00       		.space	1
+ 1059              		.section	.bss.diff,"aw",%nobits
+ 1060              		.align	2
+ 1063              	diff:
+ 1064 0000 00000000 		.space	4
+ 1065              		.section	.bss.distance,"aw",%nobits
+ 1066              		.align	2
+ 1067              		.set	.LANCHOR11,. + 0
+ 1070              	distance:
+ 1071 0000 00000000 		.space	6
+ 1071      0000
+ 1072              		.section	.bss.distances_E,"aw",%nobits
+ 1073              		.align	2
+ 1074              		.set	.LANCHOR17,. + 0
+ 1077              	distances_E:
+ 1078 0000 00000000 		.space	16
+ 1078      00000000 
+ 1078      00000000 
+ 1078      00000000 
+ARM GAS  /tmp/ccMAsx9I.s 			page 34
+
+
+ 1079              		.section	.bss.distances_F,"aw",%nobits
+ 1080              		.align	2
+ 1081              		.set	.LANCHOR19,. + 0
+ 1084              	distances_F:
+ 1085 0000 00000000 		.space	16
+ 1085      00000000 
+ 1085      00000000 
+ 1085      00000000 
+ 1086              		.section	.bss.distances_G,"aw",%nobits
+ 1087              		.align	2
+ 1088              		.set	.LANCHOR21,. + 0
+ 1091              	distances_G:
+ 1092 0000 00000000 		.space	16
+ 1092      00000000 
+ 1092      00000000 
+ 1092      00000000 
+ 1093              		.section	.bss.eptr,"aw",%nobits
+ 1094              		.align	2
+ 1095              		.set	.LANCHOR16,. + 0
+ 1098              	eptr:
+ 1099 0000 00000000 		.space	4
+ 1100              		.section	.bss.errors,"aw",%nobits
+ 1101              		.align	2
+ 1102              		.set	.LANCHOR23,. + 0
+ 1105              	errors:
+ 1106 0000 00000000 		.space	92
+ 1106      00000000 
+ 1106      00000000 
+ 1106      00000000 
+ 1106      00000000 
+ 1107              		.section	.bss.i,"aw",%nobits
+ 1108              		.align	2
+ 1111              	i:
+ 1112 0000 00000000 		.space	4
+ 1113              		.section	.bss.indexTag,"aw",%nobits
+ 1114              		.set	.LANCHOR13,. + 0
+ 1117              	indexTag:
+ 1118 0000 00       		.space	1
+ 1119              		.section	.bss.lookUpTable_E,"aw",%nobits
+ 1120              		.align	2
+ 1121              		.set	.LANCHOR3,. + 0
+ 1124              	lookUpTable_E:
+ 1125 0000 00000000 		.space	4
+ 1126              		.section	.bss.lookUpTable_F,"aw",%nobits
+ 1127              		.align	2
+ 1128              		.set	.LANCHOR4,. + 0
+ 1131              	lookUpTable_F:
+ 1132 0000 00000000 		.space	4
+ 1133              		.section	.bss.lookUpTable_G,"aw",%nobits
+ 1134              		.align	2
+ 1135              		.set	.LANCHOR5,. + 0
+ 1138              	lookUpTable_G:
+ 1139 0000 00000000 		.space	4
+ 1140              		.section	.bss.msg_to_PC,"aw",%nobits
+ 1141              		.align	2
+ 1142              		.set	.LANCHOR12,. + 0
+ 1145              	msg_to_PC:
+ARM GAS  /tmp/ccMAsx9I.s 			page 35
+
+
+ 1146 0000 00000000 		.space	20
+ 1146      00000000 
+ 1146      00000000 
+ 1146      00000000 
+ 1146      00000000 
+ 1147              		.section	.bss.rssi,"aw",%nobits
+ 1148              		.align	2
+ 1149              		.set	.LANCHOR10,. + 0
+ 1152              	rssi:
+ 1153 0000 00000000 		.space	8
+ 1153      00000000 
+ 1154              		.section	.bss.rssi_E,"aw",%nobits
+ 1155              		.align	2
+ 1156              		.set	.LANCHOR18,. + 0
+ 1159              	rssi_E:
+ 1160 0000 00000000 		.space	16
+ 1160      00000000 
+ 1160      00000000 
+ 1160      00000000 
+ 1161              		.section	.bss.rssi_F,"aw",%nobits
+ 1162              		.align	2
+ 1163              		.set	.LANCHOR20,. + 0
+ 1166              	rssi_F:
+ 1167 0000 00000000 		.space	16
+ 1167      00000000 
+ 1167      00000000 
+ 1167      00000000 
+ 1168              		.section	.bss.rssi_G,"aw",%nobits
+ 1169              		.align	2
+ 1170              		.set	.LANCHOR22,. + 0
+ 1173              	rssi_G:
+ 1174 0000 00000000 		.space	16
+ 1174      00000000 
+ 1174      00000000 
+ 1174      00000000 
+ 1175              		.section	.bss.rx_buffer,"aw",%nobits
+ 1176              		.align	2
+ 1177              		.set	.LANCHOR8,. + 0
+ 1180              	rx_buffer:
+ 1181 0000 00000000 		.space	30
+ 1181      00000000 
+ 1181      00000000 
+ 1181      00000000 
+ 1181      00000000 
+ 1182              		.section	.bss.status_reg,"aw",%nobits
+ 1183              		.align	2
+ 1184              		.set	.LANCHOR7,. + 0
+ 1187              	status_reg:
+ 1188 0000 00000000 		.space	4
+ 1189              		.section	.bss.tag,"aw",%nobits
+ 1190              		.align	2
+ 1191              		.set	.LANCHOR15,. + 0
+ 1194              	tag:
+ 1195 0000 00       		.space	1
+ 1196              		.section	.bss.time,"aw",%nobits
+ 1197              		.align	2
+ 1198              		.set	.LANCHOR6,. + 0
+ARM GAS  /tmp/ccMAsx9I.s 			page 36
+
+
+ 1201              	time:
+ 1202 0000 00000000 		.space	16
+ 1202      00000000 
+ 1202      00000000 
+ 1202      00000000 
+ 1203              		.section	.bss.timetick_1,"aw",%nobits
+ 1204              		.align	2
+ 1207              	timetick_1:
+ 1208 0000 00000000 		.space	4
+ 1209              		.section	.bss.timetick_2,"aw",%nobits
+ 1210              		.align	2
+ 1213              	timetick_2:
+ 1214 0000 00000000 		.space	4
+ 1215              		.section	.data.tx_dist_to_PC,"aw"
+ 1216              		.align	2
+ 1217              		.set	.LANCHOR9,. + 0
+ 1220              	tx_dist_to_PC:
+ 1221 0000 418800CA 		.ascii	"A\210\000\312\336PCAN\340\000\000\000\000\000\000\000"
+ 1221      DE504341 
+ 1221      4EE00000 
+ 1221      00000000 
+ 1221      00
+ 1222 0011 00000000 		.ascii	"\000\000\000\000\000\000\000\000\000\000\000\000\000"
+ 1222      00000000 
+ 1222      00000000 
+ 1222      00
+ 1223              		.text
+ 1224              	.Letext0:
+ 1225              		.file 2 "/usr/lib/gcc/arm-none-eabi/10.3.1/include/stdint.h"
+ 1226              		.file 3 "Core/Inc/deca_device_api.h"
+ 1227              		.file 4 "Core/Inc/myFunctions.h"
+ 1228              		.file 5 "/usr/include/newlib/stdlib.h"
+ 1229              		.file 6 "/usr/include/newlib/string.h"
+ 1230              		.file 7 "Core/Inc/port.h"
+ 1231              		.file 8 "<built-in>"
+ARM GAS  /tmp/ccMAsx9I.s 			page 37
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 get_msg_from_anchors2.c
+     /tmp/ccMAsx9I.s:18     .rodata.get_msg_from_anchors.str1.4:0000000000000000 $d
+     /tmp/ccMAsx9I.s:29     .text.get_msg_from_anchors:0000000000000000 $t
+     /tmp/ccMAsx9I.s:37     .text.get_msg_from_anchors:0000000000000000 get_msg_from_anchors
+     /tmp/ccMAsx9I.s:524    .text.get_msg_from_anchors:00000000000002c4 $d
+     /tmp/ccMAsx9I.s:550    .text.get_msg_from_anchors:0000000000000324 $t
+     /tmp/ccMAsx9I.s:963    .text.get_msg_from_anchors:0000000000000588 $d
+     /tmp/ccMAsx9I.s:967    .text.get_msg_from_anchors:0000000000000598 $t
+     /tmp/ccMAsx9I.s:981    .text.get_msg_from_anchors:00000000000005a4 $d
+     /tmp/ccMAsx9I.s:1070   .bss.distance:0000000000000000 distance
+     /tmp/ccMAsx9I.s:1152   .bss.rssi:0000000000000000 rssi
+     /tmp/ccMAsx9I.s:1201   .bss.time:0000000000000000 time
+     /tmp/ccMAsx9I.s:1111   .bss.i:0000000000000000 i
+     /tmp/ccMAsx9I.s:1063   .bss.diff:0000000000000000 diff
+     /tmp/ccMAsx9I.s:1213   .bss.timetick_2:0000000000000000 timetick_2
+     /tmp/ccMAsx9I.s:1207   .bss.timetick_1:0000000000000000 timetick_1
+     /tmp/ccMAsx9I.s:1145   .bss.msg_to_PC:0000000000000000 msg_to_PC
+     /tmp/ccMAsx9I.s:1098   .bss.eptr:0000000000000000 eptr
+     /tmp/ccMAsx9I.s:1117   .bss.indexTag:0000000000000000 indexTag
+     /tmp/ccMAsx9I.s:1194   .bss.tag:0000000000000000 tag
+     /tmp/ccMAsx9I.s:1057   .bss.anchor:0000000000000000 anchor
+     /tmp/ccMAsx9I.s:1173   .bss.rssi_G:0000000000000000 rssi_G
+     /tmp/ccMAsx9I.s:1091   .bss.distances_G:0000000000000000 distances_G
+     /tmp/ccMAsx9I.s:1166   .bss.rssi_F:0000000000000000 rssi_F
+     /tmp/ccMAsx9I.s:1084   .bss.distances_F:0000000000000000 distances_F
+     /tmp/ccMAsx9I.s:1159   .bss.rssi_E:0000000000000000 rssi_E
+     /tmp/ccMAsx9I.s:1077   .bss.distances_E:0000000000000000 distances_E
+     /tmp/ccMAsx9I.s:1138   .bss.lookUpTable_G:0000000000000000 lookUpTable_G
+     /tmp/ccMAsx9I.s:1131   .bss.lookUpTable_F:0000000000000000 lookUpTable_F
+     /tmp/ccMAsx9I.s:1124   .bss.lookUpTable_E:0000000000000000 lookUpTable_E
+     /tmp/ccMAsx9I.s:1051   .bss.allDistancesToPC_G:0000000000000000 allDistancesToPC_G
+     /tmp/ccMAsx9I.s:1044   .bss.allDistancesToPC_F:0000000000000000 allDistancesToPC_F
+     /tmp/ccMAsx9I.s:1037   .bss.allDistancesToPC_E:0000000000000000 allDistancesToPC_E
+     /tmp/ccMAsx9I.s:1033   .bss.allDistancesToPC_E:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1040   .bss.allDistancesToPC_F:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1047   .bss.allDistancesToPC_G:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1058   .bss.anchor:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1060   .bss.diff:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1066   .bss.distance:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1073   .bss.distances_E:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1080   .bss.distances_F:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1087   .bss.distances_G:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1094   .bss.eptr:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1101   .bss.errors:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1105   .bss.errors:0000000000000000 errors
+     /tmp/ccMAsx9I.s:1108   .bss.i:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1118   .bss.indexTag:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1120   .bss.lookUpTable_E:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1127   .bss.lookUpTable_F:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1134   .bss.lookUpTable_G:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1141   .bss.msg_to_PC:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1148   .bss.rssi:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1155   .bss.rssi_E:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1162   .bss.rssi_F:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1169   .bss.rssi_G:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1176   .bss.rx_buffer:0000000000000000 $d
+ARM GAS  /tmp/ccMAsx9I.s 			page 38
+
+
+     /tmp/ccMAsx9I.s:1180   .bss.rx_buffer:0000000000000000 rx_buffer
+     /tmp/ccMAsx9I.s:1183   .bss.status_reg:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1187   .bss.status_reg:0000000000000000 status_reg
+     /tmp/ccMAsx9I.s:1190   .bss.tag:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1197   .bss.time:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1204   .bss.timetick_1:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1210   .bss.timetick_2:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1216   .data.tx_dist_to_PC:0000000000000000 $d
+     /tmp/ccMAsx9I.s:1220   .data.tx_dist_to_PC:0000000000000000 tx_dist_to_PC
+
+UNDEFINED SYMBOLS
+__aeabi_d2f
+test_run_info
+my_reset_DWIC
+dwt_checkidlerc
+dwt_initialise
+dwt_configure
+dwt_configuretxrf
+dwt_configureframefilter
+dwt_setpanid
+dwt_setaddress16
+memset
+allTrue
+concatenateDistancesAndRssiToString
+test_run_info_DMA
+split_dist_rssi
+strtod
+config_options
+txconfig_options_ch9
+txconfig_options
+dwt_rxenable
+dwt_read32bitoffsetreg
+dwt_write32bitoffsetreg
+dwt_readrxdata
+memcmp
+get_msg_toPC_2

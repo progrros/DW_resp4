@@ -18,23 +18,22 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <string.h>
+#include "examples_defines.h"
+#include "port.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-void UART_SendDouble(double number)
-{
-    uint8_t buffer[8];  
-    memcpy(buffer, &number, sizeof(double));  
-
-    HAL_UART_Transmit(&huart1, buffer, sizeof(double), HAL_MAX_DELAY); 
-}
+void test_run_info(unsigned char *data);
+void test_run_info_DMA(unsigned char *data);
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -50,6 +49,7 @@ void UART_SendDouble(double number)
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+extern example_ptr example_pointer;
 
 /* USER CODE END PV */
 
@@ -72,6 +72,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+  build_examples();
 
   /* USER CODE END 1 */
 
@@ -94,8 +95,11 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  MX_SPI1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  double value = 123.456;
+  port_DisableEXT_IRQ();
+  example_pointer();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,8 +107,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    UART_SendDouble(value);  // Send the number
-    HAL_Delay(500);
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -157,7 +160,22 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void test_run_info(unsigned char *data)
+{
+    uint16_t    data_length;
 
+    data_length=strlen((const char *)data);
+    HAL_UART_Transmit(&huart1, data, data_length, 10);/*Transmit the data through USB - Virtual port*/
+    HAL_UART_Transmit(&huart1, (uint8_t*)"\n\r", 2, 10);/*Transmit end of line through USB - Virtual port*/
+
+}
+void test_run_info_DMA(unsigned char *data)
+{
+    uint16_t    data_length;
+
+    data_length=strlen((const char *)data);
+    HAL_UART_Transmit_DMA(&huart1, data, data_length);/*Transmit the data through USB - Virtual port*/
+}
 /* USER CODE END 4 */
 
 /**
