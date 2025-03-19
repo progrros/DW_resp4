@@ -216,22 +216,6 @@ void build_examples(void)
     test_cnt++;
 #endif
 
-#ifdef TEST_GET_MSG_FROM_ANCHORS
-    extern int get_msg_from_anchors(void);
-
-    example_pointer=get_msg_from_anchors;
-    test_cnt++;
-#endif
-
-#ifdef TEST_GET_MSG_FROM_ANCHORS_2
-    extern int get_msg_from_anchors(void);
-
-    example_pointer=get_msg_from_anchors;
-    test_cnt++;
-#endif
-
-
-
 #ifdef TEST_DS_TWR_RESPONDER_STS
     extern int ds_twr_responder_sts(void);
 

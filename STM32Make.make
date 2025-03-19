@@ -80,8 +80,9 @@ Core/Src/deca_device.c \
 Core/Src/deca_mutex.c \
 Core/Src/deca_sleep.c \
 Core/Src/deca_spi.c \
+Core/Src/dma.c \
+Core/Src/ds_twr_responder_sts.c \
 Core/Src/example_info.c \
-Core/Src/get_msg_from_anchors2.c \
 Core/Src/gpio.c \
 Core/Src/main.c \
 Core/Src/myDWM3000.c \

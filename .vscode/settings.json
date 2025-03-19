@@ -1,4 +1,8 @@
 {
     "cortex-debug.armToolchainPath": "/usr/bin",
-    "cortex-debug.openocdPath": "/usr/bin/openocd"
+    "cortex-debug.openocdPath": "/usr/bin/openocd",
+    "files.associations": {
+        "myfunctions.h": "c",
+        "config_options.h": "c"
+    }
 }

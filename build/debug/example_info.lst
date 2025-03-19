@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccDoRRqw.s 			page 1
+ARM GAS  /tmp/ccnM0ZSN.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccDoRRqw.s 			page 1
   35              	.LVL0:
   22:Core/Src/example_info.c **** 
   23:Core/Src/example_info.c **** #ifdef TEST_READING_DEV_ID
-ARM GAS  /tmp/ccDoRRqw.s 			page 2
+ARM GAS  /tmp/ccnM0ZSN.s 			page 2
 
 
   24:Core/Src/example_info.c ****     extern int read_dev_id(void);
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccDoRRqw.s 			page 1
   78:Core/Src/example_info.c **** 
   79:Core/Src/example_info.c **** #ifdef TEST_TX_SLEEP_IDLE_RC
   80:Core/Src/example_info.c ****     extern int tx_sleep_idleRC(void);
-ARM GAS  /tmp/ccDoRRqw.s 			page 3
+ARM GAS  /tmp/ccnM0ZSN.s 			page 3
 
 
   81:Core/Src/example_info.c **** 
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccDoRRqw.s 			page 1
  135:Core/Src/example_info.c **** #ifdef TEST_RX_SEND_RESP
  136:Core/Src/example_info.c ****     extern int rx_send_resp(void);
  137:Core/Src/example_info.c **** 
-ARM GAS  /tmp/ccDoRRqw.s 			page 4
+ARM GAS  /tmp/ccnM0ZSN.s 			page 4
 
 
  138:Core/Src/example_info.c ****     example_pointer=rx_send_resp;
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccDoRRqw.s 			page 1
  192:Core/Src/example_info.c ****     extern int ss_aes_twr_initiator(void);
  193:Core/Src/example_info.c **** 
  194:Core/Src/example_info.c ****     example_pointer=ss_aes_twr_initiator;
-ARM GAS  /tmp/ccDoRRqw.s 			page 5
+ARM GAS  /tmp/ccnM0ZSN.s 			page 5
 
 
  195:Core/Src/example_info.c ****     test_cnt++;
@@ -265,193 +265,177 @@ ARM GAS  /tmp/ccDoRRqw.s 			page 1
  216:Core/Src/example_info.c ****     test_cnt++;
  217:Core/Src/example_info.c **** #endif
  218:Core/Src/example_info.c **** 
- 219:Core/Src/example_info.c **** #ifdef TEST_GET_MSG_FROM_ANCHORS
- 220:Core/Src/example_info.c ****     extern int get_msg_from_anchors(void);
+ 219:Core/Src/example_info.c **** #ifdef TEST_DS_TWR_RESPONDER_STS
+ 220:Core/Src/example_info.c ****     extern int ds_twr_responder_sts(void);
+  36              		.loc 1 220 5 view .LVU2
  221:Core/Src/example_info.c **** 
- 222:Core/Src/example_info.c ****     example_pointer=get_msg_from_anchors;
- 223:Core/Src/example_info.c ****     test_cnt++;
- 224:Core/Src/example_info.c **** #endif
- 225:Core/Src/example_info.c **** 
- 226:Core/Src/example_info.c **** #ifdef TEST_GET_MSG_FROM_ANCHORS_2
- 227:Core/Src/example_info.c ****     extern int get_msg_from_anchors(void);
-  36              		.loc 1 227 5 view .LVU2
- 228:Core/Src/example_info.c **** 
- 229:Core/Src/example_info.c ****     example_pointer=get_msg_from_anchors;
-  37              		.loc 1 229 5 view .LVU3
-  38              		.loc 1 229 20 is_stmt 0 view .LVU4
+ 222:Core/Src/example_info.c ****     example_pointer=ds_twr_responder_sts;
+  37              		.loc 1 222 5 view .LVU3
+  38              		.loc 1 222 20 is_stmt 0 view .LVU4
   39 0000 014B     		ldr	r3, .L2
   40 0002 024A     		ldr	r2, .L2+4
   41 0004 1A60     		str	r2, [r3]
- 230:Core/Src/example_info.c ****     test_cnt++;
-  42              		.loc 1 230 5 is_stmt 1 view .LVU5
+ 223:Core/Src/example_info.c ****     test_cnt++;
+  42              		.loc 1 223 5 is_stmt 1 view .LVU5
   43              	.LVL1:
+ 224:Core/Src/example_info.c **** #endif
+ 225:Core/Src/example_info.c **** 
+ 226:Core/Src/example_info.c **** #ifdef TEST_DS_TWR_INITIATOR_STS
+ 227:Core/Src/example_info.c ****     extern int ds_twr_initiator_sts(void);
+ 228:Core/Src/example_info.c **** 
+ 229:Core/Src/example_info.c ****     example_pointer=ds_twr_initiator_sts;
+ 230:Core/Src/example_info.c ****     test_cnt++;
  231:Core/Src/example_info.c **** #endif
  232:Core/Src/example_info.c **** 
- 233:Core/Src/example_info.c **** 
- 234:Core/Src/example_info.c **** 
- 235:Core/Src/example_info.c **** #ifdef TEST_DS_TWR_RESPONDER_STS
- 236:Core/Src/example_info.c ****     extern int ds_twr_responder_sts(void);
- 237:Core/Src/example_info.c **** 
- 238:Core/Src/example_info.c ****     example_pointer=ds_twr_responder_sts;
- 239:Core/Src/example_info.c ****     test_cnt++;
- 240:Core/Src/example_info.c **** #endif
- 241:Core/Src/example_info.c **** 
- 242:Core/Src/example_info.c **** #ifdef TEST_DS_TWR_INITIATOR_STS
- 243:Core/Src/example_info.c ****     extern int ds_twr_initiator_sts(void);
-ARM GAS  /tmp/ccDoRRqw.s 			page 6
+ 233:Core/Src/example_info.c **** #ifdef TEST_DS_TWR_STS_SDC_INITIATOR
+ 234:Core/Src/example_info.c ****     extern int ds_twr_sts_sdc_initiator(void);
+ 235:Core/Src/example_info.c **** 
+ 236:Core/Src/example_info.c ****     example_pointer=ds_twr_sts_sdc_initiator;
+ 237:Core/Src/example_info.c ****     test_cnt++;
+ 238:Core/Src/example_info.c **** #endif
+ 239:Core/Src/example_info.c **** 
+ 240:Core/Src/example_info.c **** #ifdef TEST_DS_TWR_STS_SDC_RESPONDER
+ 241:Core/Src/example_info.c ****     extern int ds_twr_sts_sdc_responder(void);
+ 242:Core/Src/example_info.c **** 
+ 243:Core/Src/example_info.c ****     example_pointer=ds_twr_sts_sdc_responder;
+ARM GAS  /tmp/ccnM0ZSN.s 			page 6
 
 
- 244:Core/Src/example_info.c **** 
- 245:Core/Src/example_info.c ****     example_pointer=ds_twr_initiator_sts;
- 246:Core/Src/example_info.c ****     test_cnt++;
- 247:Core/Src/example_info.c **** #endif
- 248:Core/Src/example_info.c **** 
- 249:Core/Src/example_info.c **** #ifdef TEST_DS_TWR_STS_SDC_INITIATOR
- 250:Core/Src/example_info.c ****     extern int ds_twr_sts_sdc_initiator(void);
- 251:Core/Src/example_info.c **** 
- 252:Core/Src/example_info.c ****     example_pointer=ds_twr_sts_sdc_initiator;
- 253:Core/Src/example_info.c ****     test_cnt++;
- 254:Core/Src/example_info.c **** #endif
- 255:Core/Src/example_info.c **** 
- 256:Core/Src/example_info.c **** #ifdef TEST_DS_TWR_STS_SDC_RESPONDER
- 257:Core/Src/example_info.c ****     extern int ds_twr_sts_sdc_responder(void);
- 258:Core/Src/example_info.c **** 
- 259:Core/Src/example_info.c ****     example_pointer=ds_twr_sts_sdc_responder;
- 260:Core/Src/example_info.c ****     test_cnt++;
- 261:Core/Src/example_info.c **** #endif
- 262:Core/Src/example_info.c **** 
- 263:Core/Src/example_info.c **** #ifdef TEST_CONTINUOUS_WAVE
- 264:Core/Src/example_info.c ****     extern int continuous_wave_example(void);
- 265:Core/Src/example_info.c **** 
- 266:Core/Src/example_info.c ****     example_pointer=continuous_wave_example;
- 267:Core/Src/example_info.c ****     test_cnt++;
+ 244:Core/Src/example_info.c ****     test_cnt++;
+ 245:Core/Src/example_info.c **** #endif
+ 246:Core/Src/example_info.c **** 
+ 247:Core/Src/example_info.c **** #ifdef TEST_CONTINUOUS_WAVE
+ 248:Core/Src/example_info.c ****     extern int continuous_wave_example(void);
+ 249:Core/Src/example_info.c **** 
+ 250:Core/Src/example_info.c ****     example_pointer=continuous_wave_example;
+ 251:Core/Src/example_info.c ****     test_cnt++;
+ 252:Core/Src/example_info.c **** #endif
+ 253:Core/Src/example_info.c **** 
+ 254:Core/Src/example_info.c **** #ifdef TEST_CONTINUOUS_FRAME
+ 255:Core/Src/example_info.c ****     extern int continuous_frame_example(void);
+ 256:Core/Src/example_info.c **** 
+ 257:Core/Src/example_info.c ****     example_pointer=continuous_frame_example;
+ 258:Core/Src/example_info.c ****     test_cnt++;
+ 259:Core/Src/example_info.c **** 
+ 260:Core/Src/example_info.c **** #endif
+ 261:Core/Src/example_info.c **** 
+ 262:Core/Src/example_info.c **** #ifdef TEST_ACK_DATA_RX
+ 263:Core/Src/example_info.c ****     extern int ack_data_rx(void);
+ 264:Core/Src/example_info.c **** 
+ 265:Core/Src/example_info.c ****     example_pointer=ack_data_rx;
+ 266:Core/Src/example_info.c ****     test_cnt++;
+ 267:Core/Src/example_info.c **** 
  268:Core/Src/example_info.c **** #endif
  269:Core/Src/example_info.c **** 
- 270:Core/Src/example_info.c **** #ifdef TEST_CONTINUOUS_FRAME
- 271:Core/Src/example_info.c ****     extern int continuous_frame_example(void);
+ 270:Core/Src/example_info.c **** #ifdef TEST_ACK_DATA_TX
+ 271:Core/Src/example_info.c ****     extern int ack_data_tx(void);
  272:Core/Src/example_info.c **** 
- 273:Core/Src/example_info.c ****     example_pointer=continuous_frame_example;
+ 273:Core/Src/example_info.c ****     example_pointer=ack_data_tx;
  274:Core/Src/example_info.c ****     test_cnt++;
  275:Core/Src/example_info.c **** 
  276:Core/Src/example_info.c **** #endif
  277:Core/Src/example_info.c **** 
- 278:Core/Src/example_info.c **** #ifdef TEST_ACK_DATA_RX
- 279:Core/Src/example_info.c ****     extern int ack_data_rx(void);
+ 278:Core/Src/example_info.c **** #ifdef TEST_GPIO
+ 279:Core/Src/example_info.c ****     extern int gpio_example(void);
  280:Core/Src/example_info.c **** 
- 281:Core/Src/example_info.c ****     example_pointer=ack_data_rx;
+ 281:Core/Src/example_info.c ****     example_pointer=gpio_example;
  282:Core/Src/example_info.c ****     test_cnt++;
- 283:Core/Src/example_info.c **** 
- 284:Core/Src/example_info.c **** #endif
- 285:Core/Src/example_info.c **** 
- 286:Core/Src/example_info.c **** #ifdef TEST_ACK_DATA_TX
- 287:Core/Src/example_info.c ****     extern int ack_data_tx(void);
- 288:Core/Src/example_info.c **** 
- 289:Core/Src/example_info.c ****     example_pointer=ack_data_tx;
- 290:Core/Src/example_info.c ****     test_cnt++;
+ 283:Core/Src/example_info.c **** #endif
+ 284:Core/Src/example_info.c **** 
+ 285:Core/Src/example_info.c **** #ifdef TEST_SIMPLE_TX_STS_SDC
+ 286:Core/Src/example_info.c ****     extern int simple_tx_sts_sdc(void);
+ 287:Core/Src/example_info.c **** 
+ 288:Core/Src/example_info.c ****     example_pointer=simple_tx_sts_sdc;
+ 289:Core/Src/example_info.c ****     test_cnt++;
+ 290:Core/Src/example_info.c **** #endif
  291:Core/Src/example_info.c **** 
- 292:Core/Src/example_info.c **** #endif
- 293:Core/Src/example_info.c **** 
- 294:Core/Src/example_info.c **** #ifdef TEST_GPIO
- 295:Core/Src/example_info.c ****     extern int gpio_example(void);
- 296:Core/Src/example_info.c **** 
- 297:Core/Src/example_info.c ****     example_pointer=gpio_example;
- 298:Core/Src/example_info.c ****     test_cnt++;
- 299:Core/Src/example_info.c **** #endif
- 300:Core/Src/example_info.c **** 
-ARM GAS  /tmp/ccDoRRqw.s 			page 7
+ 292:Core/Src/example_info.c **** #ifdef TEST_SIMPLE_RX_STS_SDC
+ 293:Core/Src/example_info.c ****     extern int simple_rx_sts_sdc(void);
+ 294:Core/Src/example_info.c **** 
+ 295:Core/Src/example_info.c ****     example_pointer=simple_rx_sts_sdc;
+ 296:Core/Src/example_info.c ****     test_cnt++;
+ 297:Core/Src/example_info.c **** #endif
+ 298:Core/Src/example_info.c **** 
+ 299:Core/Src/example_info.c **** #ifdef TEST_FRAME_FILTERING_TX
+ 300:Core/Src/example_info.c ****     extern int frame_filtering_tx(void);
+ARM GAS  /tmp/ccnM0ZSN.s 			page 7
 
 
- 301:Core/Src/example_info.c **** #ifdef TEST_SIMPLE_TX_STS_SDC
- 302:Core/Src/example_info.c ****     extern int simple_tx_sts_sdc(void);
- 303:Core/Src/example_info.c **** 
- 304:Core/Src/example_info.c ****     example_pointer=simple_tx_sts_sdc;
- 305:Core/Src/example_info.c ****     test_cnt++;
- 306:Core/Src/example_info.c **** #endif
- 307:Core/Src/example_info.c **** 
- 308:Core/Src/example_info.c **** #ifdef TEST_SIMPLE_RX_STS_SDC
- 309:Core/Src/example_info.c ****     extern int simple_rx_sts_sdc(void);
- 310:Core/Src/example_info.c **** 
- 311:Core/Src/example_info.c ****     example_pointer=simple_rx_sts_sdc;
- 312:Core/Src/example_info.c ****     test_cnt++;
- 313:Core/Src/example_info.c **** #endif
- 314:Core/Src/example_info.c **** 
- 315:Core/Src/example_info.c **** #ifdef TEST_FRAME_FILTERING_TX
- 316:Core/Src/example_info.c ****     extern int frame_filtering_tx(void);
- 317:Core/Src/example_info.c **** 
- 318:Core/Src/example_info.c ****     example_pointer=frame_filtering_tx;
- 319:Core/Src/example_info.c ****     test_cnt++;
- 320:Core/Src/example_info.c **** #endif
- 321:Core/Src/example_info.c **** 
- 322:Core/Src/example_info.c **** #ifdef TEST_FRAME_FILTERING_RX
- 323:Core/Src/example_info.c ****     extern int frame_filtering_rx(void);
- 324:Core/Src/example_info.c **** 
- 325:Core/Src/example_info.c ****     example_pointer=frame_filtering_rx;
- 326:Core/Src/example_info.c ****     test_cnt++;
- 327:Core/Src/example_info.c **** #endif
- 328:Core/Src/example_info.c **** 
- 329:Core/Src/example_info.c **** #ifdef TEST_ACK_DATA_RX_DBL_BUFF
- 330:Core/Src/example_info.c ****     extern int ack_data_rx_dbl_buff(void);
- 331:Core/Src/example_info.c **** 
- 332:Core/Src/example_info.c ****     example_pointer=ack_data_rx_dbl_buff;
- 333:Core/Src/example_info.c ****     test_cnt++;
- 334:Core/Src/example_info.c **** #endif
- 335:Core/Src/example_info.c **** 
- 336:Core/Src/example_info.c **** #ifdef TEST_SPI_CRC
- 337:Core/Src/example_info.c ****     extern int spi_crc(void);
- 338:Core/Src/example_info.c **** 
- 339:Core/Src/example_info.c ****     example_pointer=spi_crc;
- 340:Core/Src/example_info.c ****     test_cnt++;
- 341:Core/Src/example_info.c **** #endif
- 342:Core/Src/example_info.c **** 
- 343:Core/Src/example_info.c **** #ifdef TEST_SIMPLE_RX_PDOA
- 344:Core/Src/example_info.c ****     extern int simple_rx_pdoa(void);
- 345:Core/Src/example_info.c **** 
- 346:Core/Src/example_info.c ****     example_pointer=simple_rx_pdoa;
- 347:Core/Src/example_info.c ****     test_cnt++;
- 348:Core/Src/example_info.c **** #endif
- 349:Core/Src/example_info.c **** 
- 350:Core/Src/example_info.c **** #ifdef TEST_OTP_WRITE
- 351:Core/Src/example_info.c ****     extern int otp_write(void);
- 352:Core/Src/example_info.c **** 
- 353:Core/Src/example_info.c ****     example_pointer=otp_write;
- 354:Core/Src/example_info.c ****     test_cnt++;
- 355:Core/Src/example_info.c **** #endif
+ 301:Core/Src/example_info.c **** 
+ 302:Core/Src/example_info.c ****     example_pointer=frame_filtering_tx;
+ 303:Core/Src/example_info.c ****     test_cnt++;
+ 304:Core/Src/example_info.c **** #endif
+ 305:Core/Src/example_info.c **** 
+ 306:Core/Src/example_info.c **** #ifdef TEST_FRAME_FILTERING_RX
+ 307:Core/Src/example_info.c ****     extern int frame_filtering_rx(void);
+ 308:Core/Src/example_info.c **** 
+ 309:Core/Src/example_info.c ****     example_pointer=frame_filtering_rx;
+ 310:Core/Src/example_info.c ****     test_cnt++;
+ 311:Core/Src/example_info.c **** #endif
+ 312:Core/Src/example_info.c **** 
+ 313:Core/Src/example_info.c **** #ifdef TEST_ACK_DATA_RX_DBL_BUFF
+ 314:Core/Src/example_info.c ****     extern int ack_data_rx_dbl_buff(void);
+ 315:Core/Src/example_info.c **** 
+ 316:Core/Src/example_info.c ****     example_pointer=ack_data_rx_dbl_buff;
+ 317:Core/Src/example_info.c ****     test_cnt++;
+ 318:Core/Src/example_info.c **** #endif
+ 319:Core/Src/example_info.c **** 
+ 320:Core/Src/example_info.c **** #ifdef TEST_SPI_CRC
+ 321:Core/Src/example_info.c ****     extern int spi_crc(void);
+ 322:Core/Src/example_info.c **** 
+ 323:Core/Src/example_info.c ****     example_pointer=spi_crc;
+ 324:Core/Src/example_info.c ****     test_cnt++;
+ 325:Core/Src/example_info.c **** #endif
+ 326:Core/Src/example_info.c **** 
+ 327:Core/Src/example_info.c **** #ifdef TEST_SIMPLE_RX_PDOA
+ 328:Core/Src/example_info.c ****     extern int simple_rx_pdoa(void);
+ 329:Core/Src/example_info.c **** 
+ 330:Core/Src/example_info.c ****     example_pointer=simple_rx_pdoa;
+ 331:Core/Src/example_info.c ****     test_cnt++;
+ 332:Core/Src/example_info.c **** #endif
+ 333:Core/Src/example_info.c **** 
+ 334:Core/Src/example_info.c **** #ifdef TEST_OTP_WRITE
+ 335:Core/Src/example_info.c ****     extern int otp_write(void);
+ 336:Core/Src/example_info.c **** 
+ 337:Core/Src/example_info.c ****     example_pointer=otp_write;
+ 338:Core/Src/example_info.c ****     test_cnt++;
+ 339:Core/Src/example_info.c **** #endif
+ 340:Core/Src/example_info.c **** 
+ 341:Core/Src/example_info.c **** #ifdef TEST_LE_PEND_TX
+ 342:Core/Src/example_info.c ****     extern int le_pend_tx(void);
+ 343:Core/Src/example_info.c **** 
+ 344:Core/Src/example_info.c ****     example_pointer=le_pend_tx;
+ 345:Core/Src/example_info.c ****     test_cnt++;
+ 346:Core/Src/example_info.c **** #endif
+ 347:Core/Src/example_info.c **** 
+ 348:Core/Src/example_info.c **** #ifdef TEST_LE_PEND_RX
+ 349:Core/Src/example_info.c ****     extern int le_pend_rx(void);
+ 350:Core/Src/example_info.c **** 
+ 351:Core/Src/example_info.c ****     example_pointer=le_pend_rx;
+ 352:Core/Src/example_info.c ****     test_cnt++;
+ 353:Core/Src/example_info.c **** #endif
+ 354:Core/Src/example_info.c **** #ifdef TEST_BW_CAL
+ 355:Core/Src/example_info.c ****     extern int bw_cal(void);
  356:Core/Src/example_info.c **** 
- 357:Core/Src/example_info.c **** #ifdef TEST_LE_PEND_TX
-ARM GAS  /tmp/ccDoRRqw.s 			page 8
+ 357:Core/Src/example_info.c ****     example_pointer=bw_cal;
+ARM GAS  /tmp/ccnM0ZSN.s 			page 8
 
 
- 358:Core/Src/example_info.c ****     extern int le_pend_tx(void);
- 359:Core/Src/example_info.c **** 
- 360:Core/Src/example_info.c ****     example_pointer=le_pend_tx;
- 361:Core/Src/example_info.c ****     test_cnt++;
- 362:Core/Src/example_info.c **** #endif
+ 358:Core/Src/example_info.c ****     test_cnt++;
+ 359:Core/Src/example_info.c **** #endif
+ 360:Core/Src/example_info.c **** 
+ 361:Core/Src/example_info.c ****     //Check that only 1 test was enabled in test_selection.h file
+ 362:Core/Src/example_info.c ****     assert(test_cnt==1);
+  44              		.loc 1 362 5 view .LVU6
  363:Core/Src/example_info.c **** 
- 364:Core/Src/example_info.c **** #ifdef TEST_LE_PEND_RX
- 365:Core/Src/example_info.c ****     extern int le_pend_rx(void);
- 366:Core/Src/example_info.c **** 
- 367:Core/Src/example_info.c ****     example_pointer=le_pend_rx;
- 368:Core/Src/example_info.c ****     test_cnt++;
- 369:Core/Src/example_info.c **** #endif
- 370:Core/Src/example_info.c **** #ifdef TEST_BW_CAL
- 371:Core/Src/example_info.c ****     extern int bw_cal(void);
- 372:Core/Src/example_info.c **** 
- 373:Core/Src/example_info.c ****     example_pointer=bw_cal;
- 374:Core/Src/example_info.c ****     test_cnt++;
- 375:Core/Src/example_info.c **** #endif
- 376:Core/Src/example_info.c **** 
- 377:Core/Src/example_info.c ****     //Check that only 1 test was enabled in test_selection.h file
- 378:Core/Src/example_info.c ****     assert(test_cnt==1);
-  44              		.loc 1 378 5 view .LVU6
- 379:Core/Src/example_info.c **** 
- 380:Core/Src/example_info.c **** }
-  45              		.loc 1 380 1 is_stmt 0 view .LVU7
+ 364:Core/Src/example_info.c **** }
+  45              		.loc 1 364 1 is_stmt 0 view .LVU7
   46 0006 7047     		bx	lr
   47              	.L3:
   48              		.align	2
   49              	.L2:
   50 0008 00000000 		.word	.LANCHOR0
-  51 000c 00000000 		.word	get_msg_from_anchors
+  51 000c 00000000 		.word	ds_twr_responder_sts
   52              		.cfi_endproc
   53              	.LFE0:
   55              		.global	example_pointer
@@ -463,16 +447,16 @@ ARM GAS  /tmp/ccDoRRqw.s 			page 1
   63              		.text
   64              	.Letext0:
   65              		.file 2 "Core/Inc/examples_defines.h"
-ARM GAS  /tmp/ccDoRRqw.s 			page 9
+ARM GAS  /tmp/ccnM0ZSN.s 			page 9
 
 
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 example_info.c
-     /tmp/ccDoRRqw.s:18     .text.build_examples:0000000000000000 $t
-     /tmp/ccDoRRqw.s:26     .text.build_examples:0000000000000000 build_examples
-     /tmp/ccDoRRqw.s:50     .text.build_examples:0000000000000008 $d
-     /tmp/ccDoRRqw.s:61     .bss.example_pointer:0000000000000000 example_pointer
-     /tmp/ccDoRRqw.s:57     .bss.example_pointer:0000000000000000 $d
+     /tmp/ccnM0ZSN.s:18     .text.build_examples:0000000000000000 $t
+     /tmp/ccnM0ZSN.s:26     .text.build_examples:0000000000000000 build_examples
+     /tmp/ccnM0ZSN.s:50     .text.build_examples:0000000000000008 $d
+     /tmp/ccnM0ZSN.s:61     .bss.example_pointer:0000000000000000 example_pointer
+     /tmp/ccnM0ZSN.s:57     .bss.example_pointer:0000000000000000 $d
 
 UNDEFINED SYMBOLS
-get_msg_from_anchors
+ds_twr_responder_sts

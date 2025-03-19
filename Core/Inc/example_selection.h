@@ -17,6 +17,8 @@
 extern "C" {
 #endif
 
+#define ANCHOR_TYPE 'C' // choose B or D or F for F303K8
+
 //Enable the needed example/test. Please enable only one example/test!
 //#define TEST_READING_DEV_ID
 //#define TEST_SIMPLE_TX
@@ -46,10 +48,8 @@ extern "C" {
 //#define TEST_CONTINUOUS_WAVE
 //#define TEST_CONTINUOUS_FRAME
 
-//#define TEST_DS_TWR_INITIATOR_STS // 2E
-//#define TEST_DS_TWR_RESPONDER_STS // 014
-//#define TEST_GET_MSG_FROM_ANCHORS // 2E
-#define TEST_GET_MSG_FROM_ANCHORS_2 // 2E
+//#define TEST_DS_TWR_INITIATOR_STS // D: 066FFF575
+#define TEST_DS_TWR_RESPONDER_STS // B: 0670FF575, F: 066BFF
 
 //#define TEST_DS_TWR_INITIATOR // 2E
 //#define TEST_DS_TWR_RESPONDER // 014

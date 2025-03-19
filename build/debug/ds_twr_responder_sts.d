@@ -1,4 +1,4 @@
-build/debug/get_msg_from_anchors2.o: Core/Src/get_msg_from_anchors2.c \
+build/debug/ds_twr_responder_sts.o: Core/Src/ds_twr_responder_sts.c \
  Core/Inc/main.h Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal.h \
  Core/Inc/stm32f3xx_hal_conf.h \
  Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_rcc.h \

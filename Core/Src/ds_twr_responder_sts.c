@@ -36,119 +36,83 @@
 #include <shared_functions.h>
 #include <example_selection.h>
 #include <config_options.h>
+#include "string.h"
+#include "stdio.h"
 #include "myFunctions.h"
 
-#if defined(TEST_GET_MSG_FROM_ANCHORS_2)
+
+#if defined(TEST_DS_TWR_RESPONDER_STS)
 
 extern void test_run_info(unsigned char *data);
-extern void test_run_info_DMA(unsigned char *data);
-/* Example application name */
-#define APP_NAME "GET_MSG_FROM_ANCHORS v2.0"
+extern void Send_Float_Over_UART(float *number);
 
+/* Example application name */
+#define APP_NAME "DS TWR RESP v1.0"
+
+/* Inter-ranging delay period, in milliseconds. */
+#define RNG_DELAY_MS 200
+
+#define ANT_DELAY 16547//16550
+
+/* Default antenna delay values for 64 MHz PRF. See NOTE 2 below. */
+#define TX_ANT_DLY  ANT_DELAY  //16535//16525
+#define RX_ANT_DLY  ANT_DELAY //16535//16525
 
 /* Frames used in the ranging process. See NOTE 3 below. */
-static uint8_t tx_dist_to_PC[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'P', 'C', 'A', 'N', 0xE0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // 30 length
-							  //  0    1     2   3     4     5   6     7   8     9    10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29
-																					// X  1  1  0  .  2  3  m  -  1  6  3  .  2  1  d  E \0 b1 b2
-														                            // b1 and b2 - CHECK BITS, DWM add it to end
-/* Number of anchors */
-#define NUMBER_OF_ANCHORS 4  //choose 4 or 6
-
-#if 1
-/* In table allDistancesToPC we concatenate all distances in type char separate them using ":"
- *
- * For example: {2.34:2.80:0.55:10.05:};
- *              //A     B     C     D
- *
- */
-#define LENGTH_FOR_4_ANCHORS 64
-#define LENGTH_FOR_6_ANCHORS 100
-#if NUMBER_OF_ANCHORS == 4
-char allDistancesToPC_E[LENGTH_FOR_4_ANCHORS];
-char allDistancesToPC_F[LENGTH_FOR_4_ANCHORS];
-char allDistancesToPC_G[LENGTH_FOR_4_ANCHORS];
-#elif NUMBER_OF_ANCHORS == 6
-char allDistancesToPC_E[LENGTH_FOR_6_ANCHORS];
-char allDistancesToPC_F[LENGTH_FOR_6_ANCHORS];
-char allDistancesToPC_G[LENGTH_FOR_6_ANCHORS];
-#endif
-
-/*
- * In lookUpTable we store information about when all distances from anchors are got
- *  For example [1, 0, 1, 1]
- *  			 A  B  C  D
- *  Here we know that we didn't receive distance from anchor B
- */
-#if NUMBER_OF_ANCHORS == 4
-uint8_t lookUpTable_E[NUMBER_OF_ANCHORS];
-uint8_t lookUpTable_F[NUMBER_OF_ANCHORS];
-uint8_t lookUpTable_G[NUMBER_OF_ANCHORS];
-#elif NUMBER_OF_ANCHORS == 6
-uint8_t lookUpTable_E[NUMBER_OF_ANCHORS];
-uint8_t lookUpTable_F[NUMBER_OF_ANCHORS];
-uint8_t lookUpTable_G[NUMBER_OF_ANCHORS];
-#endif
-
-
-/* Table distances take distance in type float from anchor to relative index
- * distances -> [  ,   ,   ,   ,]
- * anchors ->    A   B   C   D
- */
-#if NUMBER_OF_ANCHORS == 4
-float distances_E[NUMBER_OF_ANCHORS];
-float rssi_E[NUMBER_OF_ANCHORS];
-float distances_F[NUMBER_OF_ANCHORS];
-float rssi_F[NUMBER_OF_ANCHORS];
-float distances_G[NUMBER_OF_ANCHORS];
-float rssi_G[NUMBER_OF_ANCHORS];
-#elif NUMBER_OF_ANCHORS == 6
-float distances_E[NUMBER_OF_ANCHORS];
-float rssi_E[NUMBER_OF_ANCHORS];
-float distances_F[NUMBER_OF_ANCHORS];
-float rssi_F[NUMBER_OF_ANCHORS];
-float distances_G[NUMBER_OF_ANCHORS];
-float rssi_G[NUMBER_OF_ANCHORS];
-#endif
-
-/* here we take letter of anchor */
-char anchor;
-char tag[1];
-uint8_t indexTag;
-char *eptr;
-
-#endif
-
+/* ==== This is responder C ====*/
+static uint8_t rx_poll_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'C', 3, 'V', 'E', 0xE0, 0, 0};
+static uint8_t tx_resp_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'V', 'E', 'C', 3, 0xE1, 0, 0};
+static uint8_t rx_final_msg[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'C', 3, 'V', 'E', 0xE2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static uint8_t tx_dist_to_PC[] = {0x41, 0x88, 0, 0xCA, 0xDE, 'P', 'C', 'A', 'N', 0xE2, 'C', 0, 0, 0, 0, 0, 0, 0};
 
 /* Length of the common part of the message (up to and including the function code, see NOTE 3 below). */
 #define ALL_MSG_COMMON_LEN 10
-#define ANCHOR_IDX 10
+/* Index to access some of the fields in the frames involved in the process. */
 #define ALL_MSG_SN_IDX 2
-
+#define FINAL_MSG_POLL_TX_TS_IDX 10
+#define FINAL_MSG_RESP_RX_TS_IDX 14
+#define FINAL_MSG_FINAL_TX_TS_IDX 18
+/* Index in tx_dist_to_PC to where put distance */
+#define DISTANCE_IDX 11
+/* Frame sequence number, incremented after each transmission. */
+static uint8_t frame_seq_nb = 0;
 
 /* Buffer to store received messages.
  * Its size is adjusted to longest frame that this example code is supposed to handle. */
-#define RX_BUF_LEN 30//Must be less than FRAME_LEN_MAX_EX
+#define RX_BUF_LEN 24//Must be less than FRAME_LEN_MAX_EX
 static uint8_t rx_buffer[RX_BUF_LEN];
 
 /* Hold copy of status register state here for reference so that it can be examined at a debug breakpoint. */
 static uint32_t status_reg = 0;
 
+/* Delay between frames, in UWB microseconds. See NOTE 1 below. */
+#define POLL_RX_TO_RESP_TX_DLY_UUS (500 + CPU_COMP) //(500 + 327)
+
+/*Delay between the response frame and final frame. */
+#define RESP_TX_TO_FINAL_RX_DLY_UUS (100 + CPU_COMP) //(100 + 290)// //290
+
+/* Timestamps of frames transmission/reception. */
+static uint64_t poll_rx_ts;
+static uint64_t resp_tx_ts;
+
 
 /* Hold the amount of errors that have occurred */
 static uint32_t errors[23] = {0};
 
-char msg_to_PC[20];
-uint32_t timetick_1=0;
-uint32_t timetick_2=0;
-uint32_t diff=0;
-uint32_t i=0;
-char time[16];
-char rssi[8];
-char distance[6];
-
 extern dwt_config_t config_options;
 extern dwt_txconfig_t txconfig_options;
 extern dwt_txconfig_t txconfig_options_ch9;
+
+// my var
+uint32_t timtick_1;
+uint32_t timtick_2;
+uint32_t diff;
+uint8_t uCurrentTrim_val;
+// msg to PC
+char dist_str_to_PC[16] = {0};
+
+// struktura dla diagnostyki
+static dwt_rxdiag_t rx_diag;
 
 /*
  * 128-bit STS key to be programmed into CP_KEY register.
@@ -159,12 +123,10 @@ extern dwt_txconfig_t txconfig_options_ch9;
  *
  * Here we use a default KEY as specified in the IEEE 802.15.4z annex
  */
-#if 0
 static dwt_sts_cp_key_t cp_key =
 {
         0x14EB220F,0xF86050A8,0xD1D336AA,0x14148674
 };
-#endif
 
 /*
  * 128-bit initial value for the nonce to be programmed into the CP_IV register.
@@ -176,12 +138,27 @@ static dwt_sts_cp_key_t cp_key =
  *
  * Here we use a default IV as specified in the IEEE 802.15.4z annex
  */
-#if 0
 static dwt_sts_cp_iv_t cp_iv =
 {
         0x1F9A3DE4,0xD37EC3CA,0xC44FA8FB,0x362EEB34
 };
-#endif
+
+/*
+ * Compute the required delay needed before transmitting the RESP message
+ */
+void compute_resp_tx_frame_times(void)
+{
+    /*
+     * Different sized frames require different time delays.
+     */
+    uint32_t delay_time = POLL_RX_TO_RESP_TX_DLY_UUS + get_rx_delay_time_data_rate() + get_rx_delay_time_txpreamble();
+
+    /* Length of the STS effects the size of the frame also.
+     * This means the delay required is greater for larger STS lengths. */
+    delay_time += ((1<<(config_options.stsLength+2))*8);
+
+    dwt_setdelayedtrxtime((uint32_t)((delay_time * UUS_TO_DWT_TIME) >> 8));
+}
 
 /*! ------------------------------------------------------------------------------------------------------------------
  * @fn ds_twr_responder_sts()
@@ -192,25 +169,24 @@ static dwt_sts_cp_iv_t cp_iv =
  *
  * @return none
  */
-int get_msg_from_anchors(void)
+int ds_twr_responder_sts(void)
 {
-
-#if 0
     int16_t stsQual; /* This will contain STS quality index and status */
     int goodSts = 0; /* Used for checking STS quality in received signal */
+    uint8_t loopCount = 0;
     uint8_t messageFlag = 0; /* Used to track whether STS count should be reinitialised or not */
-#endif
     /* Display application name on UART. */
     test_run_info((unsigned char *)APP_NAME);
 
 
     /* Reset DW IC */
-    my_reset_DWIC();
+    my_reset_DWIC(); /* Target specific drive of RSTn line into DW IC low for a period. */
+
 
     while (!dwt_checkidlerc()) /* Need to make sure DW IC is in IDLE_RC before proceeding */
     { };
 
-    // Start timer from STM
+    /* ====> Start timer from STM <==== */
     //HAL_TIM_Base_Start(&htim2);
 
     if (dwt_initialise(DWT_DW_IDLE) == DWT_ERROR)
@@ -220,8 +196,12 @@ int get_msg_from_anchors(void)
         { };
     }
 
+    /* ====>  Enable TX/RX led's for visual diagnostic <==== */
+    /* Next can enable TX/RX states output on GPIOs 5 and 6 to help diagnostics, and also TX/RX LEDs */
+    //dwt_setlnapamode(DWT_LNA_ENABLE | DWT_PA_ENABLE);
+
     /* Enabling LEDs here for debug so that for each TX the D1 LED will flash on DW3000 red eval-shield boards.
-     * Note, in real low power applications the LEDs should not be used. */
+	 * Note, in real low power applications the LEDs should not be used. */
     //dwt_setleds(DWT_LEDS_ENABLE | DWT_LEDS_INIT_BLINK) ;
 
     /* Configure DW IC. See NOTE 14 below. */
@@ -242,47 +222,78 @@ int get_msg_from_anchors(void)
         dwt_configuretxrf(&txconfig_options_ch9);
     }
 
-    //configure frame filtering
+    /* ====> Enable frame filtering <==== */
     dwt_configureframefilter(DWT_FF_ENABLE_802_15_4, DWT_FF_DATA_EN);
     dwt_setpanid(0xDECA);
-    dwt_setaddress16(0x4350);
+    dwt_setaddress16(0x343);
 
-    // clear tables
-#if NUMBER_OF_ANCHORS == 4
-    memset(allDistancesToPC_E, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
-    memset(allDistancesToPC_F, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
-    memset(allDistancesToPC_G, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
-    memset(lookUpTable_E, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-    memset(lookUpTable_F, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-    memset(lookUpTable_G, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-#else
-    memset(allDistancesToPC_E, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
-	memset(allDistancesToPC_F, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
-	memset(allDistancesToPC_G, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
-	memset(lookUpTable_E, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-	memset(lookUpTable_F, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-	memset(lookUpTable_G, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-#endif
-    memset(time, '\0', 16*sizeof(char));
+    /* Apply default antenna delay value. See NOTE 2 below. */
+    dwt_setrxantennadelay(RX_ANT_DLY);
+    dwt_settxantennadelay(TX_ANT_DLY);
 
+
+    //Delay between the response frame and final frame
+    dwt_setrxaftertxdelay(RESP_TX_TO_FINAL_RX_DLY_UUS);
+
+    /* ====> Enable registers for RSSI (in progress) <==== */
+    // Active event counters
+//    dwt_configeventcounters(1);
+    // Enable IC diagnostic calculation and logging
+//    dwt_configciadiag(1);
 
     /* Loop responding to ranging requests, for RANGE_COUNT number of times */
-    //while (loopCount < RANGE_COUNT)
 	while(1)
     {
+        /*
+         * Set CP encryption key and IV (nonce).
+         * See Note 16 below.
+         */
+        if (!messageFlag)
+        {
+            if (!loopCount)
+            {
+                /*
+                 * On first loop, configure the STS key & IV, then load them.
+                 */
+                dwt_configurestskey(&cp_key);
+                dwt_configurestsiv(&cp_iv);
+                dwt_configurestsloadiv();
+            }
+            else
+            {
+                /*
+                 * On subsequent loops, we only need to reload the lower 32 bits of STS IV.
+                 */
+                dwt_writetodevice(STS_IV0_ID, 0, 4, (uint8_t *)&cp_iv);
+                dwt_configurestsloadiv();
+            }
+        }
 
-		dwt_rxenable(DWT_START_RX_IMMEDIATE);
+        if(!messageFlag)  // Responder will enable the receive when waiting for Poll message,
+                          // the receiver will be automatically enabled (DWT_RESPONSE_EXPECTED) when waiting for Final message
+        {
+            loopCount++;  // increment the loop count only when starting ranging exchange
+			/* Activate reception immediately. */
+			dwt_rxenable(DWT_START_RX_IMMEDIATE);
+        }
 
         /* Poll for reception of a frame or error/timeout. See NOTE 6 below. */
         while (!((status_reg = dwt_read32bitreg(SYS_STATUS_ID)) & (SYS_STATUS_RXFCG_BIT_MASK | SYS_STATUS_ALL_RX_TO | SYS_STATUS_ALL_RX_ERR)))
         { };
 
+        /* ====> Take first tic of timer <==== */
+        //timtick_1 = __HAL_TIM_GET_COUNTER(&htim2);
+
         /*
-         * Check for a good frame
+         * Need to check the STS has been received and is good.
          */
-        if ((status_reg & SYS_STATUS_RXFCG_BIT_MASK))
+        goodSts = dwt_readstsquality(&stsQual);
+
+        /*
+         * Check for a good frame and STS count.
+         */
+        if ((status_reg & SYS_STATUS_RXFCG_BIT_MASK) && (goodSts >= 0))
         {
-        	//test_run_info((unsigned char *)"Jestem1");
             uint32_t frame_len;
 
             /* Clear good RX frame event in the DW IC status register. */
@@ -293,311 +304,167 @@ int get_msg_from_anchors(void)
             if (frame_len <= sizeof(rx_buffer))
             {
             	//test_run_info((unsigned char *)"Jestem2");
-                dwt_readrxdata(rx_buffer, frame_len, 0);
+            	dwt_readrxdata(rx_buffer, frame_len, 0);
 
                 /* Check that the frame is a poll sent by "SS TWR initiator STS" example.
                  * As the sequence number field of the frame is not relevant, it is cleared to simplify the validation of the frame. */
                 rx_buffer[ALL_MSG_SN_IDX] = 0;
-
-                if (memcmp(rx_buffer, tx_dist_to_PC, ALL_MSG_COMMON_LEN) == 0)
+                if (memcmp(rx_buffer, rx_poll_msg, ALL_MSG_COMMON_LEN) == 0)
                 {
-/*
- * Ta sekcja pobiera pomiar i odrazu wysyła na komputer. Jeżeli chcemy badać punkt - punkt, to jest sekcja do tego.
- */
-#if 0
-                	/*
-                	 * Ta sekcja mierzy czas otrzymania pojedynczego pomiaru z jednego anchora
-                	 */
-	#if 0
-                	if(i%2==0)
-                	{
-                		timetick_1 = __HAL_TIM_GET_COUNTER(&htim2);
-                	}
-                	else
-                	{
-                		timetick_2 = __HAL_TIM_GET_COUNTER(&htim2);
-                	}
-                	if(i>=1)
-                	{
-                		if(i%2==0)
-						{
-                			diff = timetick_1 - timetick_2;
-						}
-						else
-						{
-							diff = timetick_2 - timetick_1;
-						}
+                    uint32_t resp_tx_time;
+                    int ret;
 
-						sprintf(time, "%ld", diff);
-						test_run_info((unsigned char *)time);
-						memset(time, '\0', 16*sizeof(char));
-                	}
-                	i++;
-	#endif
-                	get_msg_toPC_2(msg_to_PC, rx_buffer, ANCHOR_IDX);
-                	test_run_info_DMA((unsigned char *)msg_to_PC);
-					memset(msg_to_PC, '\0', 20*sizeof(char));
-#endif
-/* ======= >Take all distances and then send to PC < =======  */
-#if 1
-					memset(rssi, '\0', 8*sizeof(char));
-					memset(distance, '\0', 6*sizeof(char));
-					memset(msg_to_PC, '\0', 20*sizeof(char));
-					indexTag = get_msg_toPC_2(msg_to_PC, rx_buffer, ANCHOR_IDX);
-                	anchor = msg_to_PC[0];
-                	tag[0] = msg_to_PC[indexTag];
-                	switch (anchor)
-                	{
-						case 'A':
-							switch (tag[0])
-							{
-								case 'E':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_E[0] = strtod(distance, &eptr);
-									rssi_E[0] = strtod(rssi, &eptr);
-									lookUpTable_E[0] = 1;
-									break;
-								case 'F':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_F[0] = strtod(distance, &eptr);
-									rssi_F[0] = strtod(rssi, &eptr);
-									lookUpTable_F[0] = 1;
-									break;
-								case 'G':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_G[0] = strtod(distance, &eptr);
-									rssi_G[0] = strtod(rssi, &eptr);
-									lookUpTable_G[0] = 1;
-									break;
-							}
-							break;
-						case 'B':
-							switch (tag[0])
-							{
-								case 'E':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_E[1] = strtod(distance, &eptr);
-									rssi_E[1] = strtod(rssi, &eptr);
-									lookUpTable_E[1] = 1;
-									break;
-								case 'F':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_F[1] = strtod(distance, &eptr);
-									rssi_F[1] = strtod(rssi, &eptr);
-									lookUpTable_F[1] = 1;
-									break;
-								case 'G':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_G[1] = strtod(distance, &eptr);
-									rssi_G[1] = strtod(rssi, &eptr);
-									lookUpTable_G[1] = 1;
-									break;
-							}
-							break;
-						case 'C': // normlanie C
-							switch (tag[0])
-							{
-								case 'E':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_E[2] = strtod(distance, &eptr);
-									rssi_E[2] = strtod(rssi, &eptr);
-									lookUpTable_E[2] = 1;
-									break;
-								case 'F':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_F[2] = strtod(distance, &eptr);
-									rssi_F[2] = strtod(rssi, &eptr);
-									lookUpTable_F[2] = 1;
-									break;
-								case 'G':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_G[2] = strtod(distance, &eptr);
-									rssi_G[2] = strtod(rssi, &eptr);
-									lookUpTable_G[2] = 1;
-									break;
-							}
-							break;
-						case 'D': // normalnie D
-							switch (tag[0])
-							{
-								case 'E':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_E[3] = strtod(distance, &eptr);
-									rssi_E[3] = strtod(rssi, &eptr);
-									lookUpTable_E[3] = 1;
-									break;
-								case 'F':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_F[3] = strtod(distance, &eptr);
-									rssi_F[3] = strtod(rssi, &eptr);
-									lookUpTable_F[3] = 1;
-									break;
-								case 'G':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_G[3] = strtod(distance, &eptr);
-									rssi_G[3] = strtod(rssi, &eptr);
-									lookUpTable_G[3] = 1;
-									break;
-							}
-							break;
-	#if NUMBER_OF_ANCHORS == 6
-						case 'E':
-							switch (tag[0])
-							{
-								case 'E':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_E[4] = strtod(distance, &eptr);
-									rssi_E[4] = strtod(rssi, &eptr);
-									lookUpTable_E[4] = 1;
-									break;
-								case 'F':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_F[4] = strtod(distance, &eptr);
-									rssi_F[4] = strtod(rssi, &eptr);
-									lookUpTable_F[4] = 1;
-									break;
-								case 'G':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_G[4] = strtod(distance, &eptr);
-									rssi_G[4] = strtod(rssi, &eptr);
-									lookUpTable_G[4] = 1;
-									break;
-							}
-							break;
-						case 'F':
-							switch (tag[0])
-							{
-								case 'E':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_E[5] = strtod(distance, &eptr);
-									rssi_E[5] = strtod(rssi, &eptr);
-									lookUpTable_E[5] = 1;
-									break;
-								case 'F':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_F[5] = strtod(distance, &eptr);
-									rssi_F[5] = strtod(rssi, &eptr);
-									lookUpTable_F[5] = 1;
-									break;
-								case 'G':
-									split_dist_rssi(msg_to_PC, distance, rssi, tag[0]);
-									distances_G[5] = strtod(distance, &eptr);
-									rssi_G[5] = strtod(rssi, &eptr);
-									lookUpTable_G[5] = 1;
-									break;
-							}
-							break;
-	#endif
-						default:
-							break;
-					}
-                	if (allTrue(lookUpTable_E, NUMBER_OF_ANCHORS))
-                	{
-						#if NUMBER_OF_ANCHORS == 4
-                			memset(allDistancesToPC_E, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
-                			memset(lookUpTable_E, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-						#elif NUMBER_OF_ANCHORS == 6
-                			memset(allDistancesToPC_E, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
-							memset(lookUpTable_E, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-						#endif
-						concatenateDistancesAndRssiToString(distances_E, rssi_E, allDistancesToPC_E, NUMBER_OF_ANCHORS, tag);
-                		test_run_info_DMA((unsigned char *)allDistancesToPC_E);
+                    /* Retrieve poll reception timestamp. */
+                    poll_rx_ts = get_rx_timestamp_u64();
 
-                	}
-                	else if (allTrue(lookUpTable_F, NUMBER_OF_ANCHORS))
-					{
-						#if NUMBER_OF_ANCHORS == 4
-                			memset(allDistancesToPC_F, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
-                			memset(lookUpTable_F, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-						#elif NUMBER_OF_ANCHORS == 6
-                			memset(allDistancesToPC_F, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
-							memset(lookUpTable_F, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-						#endif
-						concatenateDistancesAndRssiToString(distances_F, rssi_F, allDistancesToPC_F, NUMBER_OF_ANCHORS, tag);
-						test_run_info_DMA((unsigned char *)allDistancesToPC_F);
+                    resp_tx_time = (poll_rx_ts                               /* Received timestamp value */
+                            + ((POLL_RX_TO_RESP_TX_DLY_UUS                   /* Set delay time */
+                                    + get_rx_delay_time_data_rate()          /* Added delay time for data rate set */
+                                    + get_rx_delay_time_txpreamble()         /* Added delay for TX preamble length */
+                                    + ((1<<(config_options.stsLength+2))*8)) /* Added delay for STS length */
+                                    * UUS_TO_DWT_TIME)) >> 8;                /* Converted to time units for chip */
+                    dwt_setdelayedtrxtime(resp_tx_time);
 
-					}
-                	else if (allTrue(lookUpTable_G, NUMBER_OF_ANCHORS))
-					{
-						#if NUMBER_OF_ANCHORS == 4
-                			memset(allDistancesToPC_G, '\0', LENGTH_FOR_4_ANCHORS*sizeof(char));
-                			memset(lookUpTable_G, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-						#elif NUMBER_OF_ANCHORS == 6
-                			memset(allDistancesToPC_G, '\0', LENGTH_FOR_6_ANCHORS*sizeof(char));
-							memset(lookUpTable_G, 0, NUMBER_OF_ANCHORS*sizeof(uint8_t));
-						#endif
-						concatenateDistancesAndRssiToString(distances_G, rssi_G, allDistancesToPC_G, NUMBER_OF_ANCHORS, tag);
-						test_run_info_DMA((unsigned char *)allDistancesToPC_G);
+                    /* Response TX timestamp is the transmission time we programmed plus the antenna delay. */
+                    resp_tx_ts = (((uint64_t)(resp_tx_time & 0xFFFFFFFEUL)) << 8) + TX_ANT_DLY;
 
-					}
-/*
- * Ta sekcja mierzy czas zdobycia wszystkich pomiarów(nie jest to dokończone, nie bedzie działać)
- */
- #if 0
-                	if (allTrue(lookUpTable, NUMBER_OF_ANCHORS))
-                	{
-                		concatenateDistancesToString(distances, allDistancesToPC, NUMBER_OF_ANCHORS);
-                		test_run_info((unsigned char *)allDistancesToPC);
-	#if NUMBER_OF_ANCHORS == 4
-                		memset(allDistancesToPC, '\0', 32*sizeof(char));
-                		memset(lookUpTable, 0, 4*sizeof(uint8_t));
-	#elif NUMBER_OF_ANCHORS == 6
-                		memset(allDistancesToPC, '\0', 64*sizeof(char));
-						memset(lookUpTable, 0, 6*sizeof(uint8_t));
-	#endif
-	#if 0
-                		if(i%2 == 0)
-                		{
-                			timetick_1 = __HAL_TIM_GET_COUNTER(&htim2);
-                		}
-                		else
-                		{
-                			timetick_2 = __HAL_TIM_GET_COUNTER(&htim2);
-                		}
-                		if(i>=1)
-						{
-							if(i%2==0)
-							{
-								diff = timetick_1 - timetick_2;
-							}
-							else
-							{
-								diff = timetick_2 - timetick_1;
-							}
-							sprintf(time, "%ld", diff);
-							test_run_info((unsigned char *)time);
-							memset(time, '\0', 16*sizeof(char));
-						}
-                		i++;
-	#endif
-                	}
- #endif
-#endif
+                    /* Write and send the response message. See NOTE 9 below. */
+                    tx_resp_msg[ALL_MSG_SN_IDX] = frame_seq_nb;
+                    dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_TXFRS_BIT_MASK);
+                    dwt_writetxdata(sizeof(tx_resp_msg), tx_resp_msg, 0); /* Zero offset in TX buffer. */
+                    dwt_writetxfctrl(sizeof(tx_resp_msg), 0, 1); /* Zero offset in TX buffer, ranging. */
+                    /*
+                     * As described above, we will be delaying the transmission of the RESP message
+                     * with a set value that is also with reference to the timestamp of the received
+                     * POLL message.
+                     */
+                    dwt_setrxaftertxdelay(100); // receiver can be delayed as Final message will not come immediately
+                    ret = dwt_starttx(DWT_START_TX_DELAYED | DWT_RESPONSE_EXPECTED);
+
+                    /* ====> Take second tic of timer <==== */
+					//timtick_2 = __HAL_TIM_GET_COUNTER(&htim2);
+					/* ====> Take difference  <==== */
+					//diff = timtick_2 - timtick_1;
+
+                    /* If dwt_starttx() returns an error, abandon this ranging exchange and proceed to the next one. See NOTE 10 below. */
+                    if (ret == DWT_SUCCESS)
+                    {
+                        /* Poll DW IC until TX frame sent event set. See NOTE 6 below. */
+                        while (!(dwt_read32bitreg(SYS_STATUS_ID) & SYS_STATUS_TXFRS_BIT_MASK))
+                        { };
+
+                        /* Clear TXFRS event. */
+                        dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_TXFRS_BIT_MASK);
+
+                        /* Increment frame sequence number after transmission of the poll message (modulo 256). */
+                        frame_seq_nb++;
+
+                        /*
+                         * This flag is set high here so that we do not reset the STS count before receiving
+                         * the final message from the initiator. Otherwise, the STS count would be bad and
+                         * we would be unable to receive it.
+                         */
+                        messageFlag = 1;
+                    }
+                }
+                else if (memcmp(rx_buffer, rx_final_msg, ALL_MSG_COMMON_LEN) == 0)
+                {
+                    uint64_t final_rx_ts;
+                    uint32_t poll_tx_ts, resp_rx_ts, final_tx_ts;
+                    uint32_t poll_rx_ts_32, resp_tx_ts_32, final_rx_ts_32;
+                    double Ra, Rb, Da, Db, tof, distance;
+                    int64_t tof_dtu;
+                    int ret; // return value from starttx
+
+                    /* Retrieve response transmission and final reception timestamps. */
+                    resp_tx_ts = get_tx_timestamp_u64();
+                    final_rx_ts = get_rx_timestamp_u64();
+
+                    /* Get timestamps embedded in the final message. */
+                    final_msg_get_ts(&rx_buffer[FINAL_MSG_POLL_TX_TS_IDX], &poll_tx_ts);
+                    final_msg_get_ts(&rx_buffer[FINAL_MSG_RESP_RX_TS_IDX], &resp_rx_ts);
+                    final_msg_get_ts(&rx_buffer[FINAL_MSG_FINAL_TX_TS_IDX], &final_tx_ts);
+
+                    /* Compute time of flight. 32-bit subtractions give correct answers even if clock has wrapped. See NOTE 15 below. */
+                    poll_rx_ts_32 = (uint32_t)poll_rx_ts;
+                    resp_tx_ts_32 = (uint32_t)resp_tx_ts;
+                    final_rx_ts_32 = (uint32_t)final_rx_ts;
+                    Ra = (double)(resp_rx_ts - poll_tx_ts);
+                    Rb = (double)(final_rx_ts_32 - resp_tx_ts_32);
+                    Da = (double)(final_tx_ts - resp_rx_ts);
+                    Db = (double)(resp_tx_ts_32 - poll_rx_ts_32);
+                    tof_dtu = (int64_t)((Ra * Rb - Da * Db) / (Ra + Rb + Da + Db));
+
+                    tof = tof_dtu * DWT_TIME_UNITS;
+                    distance = tof * SPEED_OF_LIGHT;
+
+                    Send_Float_Over_UART(&distance);    
+                    /* ====> Get params for diagnostic (in progress) <==== */
+					//C = STS_DIAG_1 to jest pole stsPower
+					//N = STS_DIAG_12 to jest pole stsAccumCount
+					//dwt_readdiagnostics(&rx_diag);
+
+					/* ====> Read DGC here <==== */
+					//dwt_dg
+
+                    /* ====> Send distance to PC <==== */
+                    sprintf(dist_str_to_PC, "%3.2fm" ,distance);
+					//add_dist_to_PCmsg(tx_dist_to_PC, dist_str_to_PC, DISTANCE_IDX);
+					dwt_writetxdata(sizeof(tx_dist_to_PC), tx_dist_to_PC, 0); /* Zero offset in TX buffer. */
+					dwt_writetxfctrl(sizeof(tx_dist_to_PC), 0, 1); /* Zero offset in TX buffer, ranging. */
+					ret = dwt_starttx(DWT_START_TX_IMMEDIATE);
+				   /* If dwt_starttx() returns an error, abandon this ranging exchange and proceed to the next one. See NOTE 10 below. */
+				   if (ret == DWT_SUCCESS)
+				   {
+					   /* Poll DW IC until TX frame sent event set. See NOTE 6 below. */
+					   while (!(dwt_read32bitreg(SYS_STATUS_ID) & SYS_STATUS_TXFRS_BIT_MASK))
+					   { };
+
+					   /* Clear TXFRS event. */
+					   dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_TXFRS_BIT_MASK);
+				   }
+				   else
+				   {
+					   test_run_info((unsigned char *)"NW");
+				   }
+
+                    /* Display computed distance on UART. */
+                    sprintf(dist_str, "C: %3.2fm" ,distance);
+                    test_run_info((unsigned char *)dist_str);
+                    /* as DS-TWR initiator is waiting for RNG_DELAY_MS before next poll transmission
+                     * we can add a delay here before RX is re-enabled again
+                     */
+
+                    Sleep(RNG_DELAY_MS - 10);  //start couple of ms earlier
+
+                    /*
+                     * It is OK to reset the STS count when the next loop starts.
+                     * We have the last message in the sequence and can start again.
+                     */
+                    messageFlag = 0;
                 }
                 else
                 {
-                	//test_run_info((unsigned char *)"Jestem4");
                     errors[BAD_FRAME_ERR_IDX] += 1;
                     /*
                      * If any error occurs, we can reset the STS count back to default value.
                      */
-                    //messageFlag = 0;
+                    messageFlag = 0;
                 }
             }
             else
             {
-            	//test_run_info((unsigned char *)"Jestem5");
+            	//test_run_info((unsigned char *)"Jestem_6");
                 errors[RTO_ERR_IDX] += 1;
                 /*
                  * If any error occurs, we can reset the STS count back to default value.
                  */
-               // messageFlag = 0;
+                messageFlag = 0;
             }
         }
         else
         {
-        	//test_run_info((unsigned char *)"Jestem6");
-#if 0
+        	//test_run_info((unsigned char *)"Jestem7");
             check_for_status_errors(status_reg, errors);
 
             if (!(status_reg & SYS_STATUS_RXFCG_BIT_MASK))
@@ -612,14 +479,13 @@ int get_msg_from_anchors(void)
             {
                 errors[CP_QUAL_ERR_IDX] += 1;
             }
-#endif
             /* Clear RX error events in the DW IC status register. */
             dwt_write32bitreg(SYS_STATUS_ID, SYS_STATUS_ALL_RX_ERR);
 
             /*
              * If any error occurs, we can reset the STS count back to default value.
              */
-            //messageFlag = 0;
+            messageFlag = 0;
         }
 
     }

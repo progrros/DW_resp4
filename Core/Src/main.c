@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -32,13 +33,13 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-void test_run_info(unsigned char *data);
-void test_run_info_DMA(unsigned char *data);
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+void test_run_info(unsigned char *data);
+void Send_Float_Over_UART(float *number);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -94,6 +95,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_SPI1_Init();
   MX_TIM2_Init();
@@ -169,13 +171,17 @@ void test_run_info(unsigned char *data)
     HAL_UART_Transmit(&huart1, (uint8_t*)"\n\r", 2, 10);/*Transmit end of line through USB - Virtual port*/
 
 }
-void test_run_info_DMA(unsigned char *data)
-{
-    uint16_t    data_length;
 
-    data_length=strlen((const char *)data);
-    HAL_UART_Transmit_DMA(&huart1, data, data_length);/*Transmit the data through USB - Virtual port*/
+void Send_Float_Over_UART(float *number) {
+  uint8_t buffer[4];  // Float is 4 bytes in size
+
+  // Copy the float into the buffer
+  memcpy(buffer, &number, sizeof(float));
+
+  // Send the buffer over UART
+  HAL_UART_Transmit(&huart1, buffer, sizeof(float), HAL_MAX_DELAY);
 }
+
 /* USER CODE END 4 */
 
 /**

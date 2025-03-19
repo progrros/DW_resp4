@@ -1911,6 +1911,18 @@ void dwt_setxtaltrim(uint8_t value);
 uint8_t dwt_getxtaltrim(void);
 
 /*! ------------------------------------------------------------------------------------------------------------------
+ * @brief This function return current value of DGC_DECISION in sub register DGC report
+ *
+ * input parameters
+ * @param - no param
+ *
+ * output parameters
+ * returns value of the DGC_DECISION needed to estimating the receive signal power with PRF of 64MHz
+ *
+ * note: this function was not implemented originally. Implemented by Mateusz Moroń
+ */
+uint8_t dwt_get_dgcdecision(void);
+/*! ------------------------------------------------------------------------------------------------------------------
  * @brief This function enables repeated frames to be generated given a frame repetition rate.
  *
  * input parameters:

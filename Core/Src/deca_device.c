@@ -4128,7 +4128,24 @@ uint8_t dwt_getxtaltrim(void)
 {
     return pdw3000local->init_xtrim;
 }
-
+/*! ------------------------------------------------------------------------------------------------------------------
+ * @brief This function return current value of DGC_DECISION in sub register DGC report
+ *
+ * input parameters
+ * @param - no param
+ *
+ * output parameters
+ * returns value of the DGC_DECISION needed to estimating the receive signal power with PRF of 64MHz
+ *
+ * note: this function was not implemented originally. Implemented by Mateusz Moroń
+ */
+uint8_t dwt_get_dgcdecision(void)
+{
+	// 0x30060 is DGC_DGB
+	uint8_t dgcDecision;
+	dgcDecision = (dwt_read32bitoffsetreg(0x30060, 0) >> 28) & 0b0111;
+	return dgcDecision;
+}
 /*! ------------------------------------------------------------------------------------------------------------------
  * @brief This function will disable TX LDOs and allow TX blocks to be manually turned off by dwt_disable_rftx_blocks
  *
