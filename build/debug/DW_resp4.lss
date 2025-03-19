@@ -37,15 +37,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_aranges 00001b58  00000000  00000000  0005b930  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0001e624  00000000  00000000  0005d488  2**0
+ 17 .debug_line   0001e626  00000000  00000000  0005d488  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000082bb  00000000  00000000  0007baac  2**0
+ 18 .debug_str    000082bb  00000000  00000000  0007baae  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_loc    0001afcc  00000000  00000000  00083d67  2**0
+ 19 .debug_loc    0001afaf  00000000  00000000  00083d69  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .debug_ranges 000019f8  00000000  00000000  0009ed38  2**3
+ 20 .debug_ranges 000019f8  00000000  00000000  0009ed18  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_frame  00004838  00000000  00000000  000a0730  2**2
+ 21 .debug_frame  00004838  00000000  00000000  000a0710  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -7959,7 +7959,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, DW_IRQn_Pin|DW_RESET_Pin, GPIO_PIN_RESET);
  80045dc:	4d0f      	ldr	r5, [pc, #60]	; (800461c <MX_GPIO_Init+0x94>)
  80045de:	4622      	mov	r2, r4
- 80045e0:	f44f 5140 	mov.w	r1, #12288	; 0x3000
+ 80045e0:	f44f 51a0 	mov.w	r1, #5120	; 0x1400
  80045e4:	4628      	mov	r0, r5
  80045e6:	f000 fcd9 	bl	8004f9c <HAL_GPIO_WritePin>
 
@@ -7981,7 +7981,7 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : DW_IRQn_Pin DW_RESET_Pin */
   GPIO_InitStruct.Pin = DW_IRQn_Pin|DW_RESET_Pin;
- 8004600:	f44f 5340 	mov.w	r3, #12288	; 0x3000
+ 8004600:	f44f 53a0 	mov.w	r3, #5120	; 0x1400
  8004604:	9303      	str	r3, [sp, #12]
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
  8004606:	9604      	str	r6, [sp, #16]
@@ -8344,7 +8344,7 @@ void my_reset_DWIC(void)
  80047e6:	af00      	add	r7, sp, #0
     HAL_GPIO_WritePin(DW_RESET_GPIO_Port, DW_RESET_Pin, GPIO_PIN_RESET);
  80047e8:	2200      	movs	r2, #0
- 80047ea:	f44f 5100 	mov.w	r1, #8192	; 0x2000
+ 80047ea:	f44f 6180 	mov.w	r1, #1024	; 0x400
  80047ee:	480a      	ldr	r0, [pc, #40]	; (8004818 <my_reset_DWIC+0x34>)
  80047f0:	f000 fbd4 	bl	8004f9c <HAL_GPIO_WritePin>
     HAL_Delay(6);
@@ -8352,7 +8352,7 @@ void my_reset_DWIC(void)
  80047f6:	f000 f9c5 	bl	8004b84 <HAL_Delay>
     HAL_GPIO_WritePin(DW_RESET_GPIO_Port, DW_RESET_Pin, GPIO_PIN_SET);
  80047fa:	2201      	movs	r2, #1
- 80047fc:	f44f 5100 	mov.w	r1, #8192	; 0x2000
+ 80047fc:	f44f 6180 	mov.w	r1, #1024	; 0x400
  8004800:	4805      	ldr	r0, [pc, #20]	; (8004818 <my_reset_DWIC+0x34>)
  8004802:	f000 fbcb 	bl	8004f9c <HAL_GPIO_WritePin>
     HAL_Delay(3);

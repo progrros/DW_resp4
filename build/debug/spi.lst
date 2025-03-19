@@ -1,4 +1,4 @@
-ARM GAS  /tmp/cceAjxVH.s 			page 1
+ARM GAS  /tmp/ccbBaz0X.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/cceAjxVH.s 			page 1
   28:Core/Src/spi.c **** 
   29:Core/Src/spi.c **** /* SPI1 init function */
   30:Core/Src/spi.c **** void MX_SPI1_Init(void)
-ARM GAS  /tmp/cceAjxVH.s 			page 2
+ARM GAS  /tmp/ccbBaz0X.s 			page 2
 
 
   31:Core/Src/spi.c **** {
@@ -118,7 +118,7 @@ ARM GAS  /tmp/cceAjxVH.s 			page 1
   66 0022 1822     		movs	r2, #24
   67 0024 C261     		str	r2, [r0, #28]
   48:Core/Src/spi.c ****   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-ARM GAS  /tmp/cceAjxVH.s 			page 3
+ARM GAS  /tmp/ccbBaz0X.s 			page 3
 
 
   68              		.loc 1 48 3 is_stmt 1 view .LVU17
@@ -178,7 +178,7 @@ ARM GAS  /tmp/cceAjxVH.s 			page 1
  107 0048 00300140 		.word	1073819648
  108              		.cfi_endproc
  109              	.LFE130:
-ARM GAS  /tmp/cceAjxVH.s 			page 4
+ARM GAS  /tmp/ccbBaz0X.s 			page 4
 
 
  111              		.section	.text.HAL_SPI_MspInit,"ax",%progbits
@@ -238,7 +238,7 @@ ARM GAS  /tmp/cceAjxVH.s 			page 1
   80:Core/Src/spi.c ****     PA7     ------> SPI1_MOSI
   81:Core/Src/spi.c ****     */
   82:Core/Src/spi.c ****     GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
-ARM GAS  /tmp/cceAjxVH.s 			page 5
+ARM GAS  /tmp/ccbBaz0X.s 			page 5
 
 
   83:Core/Src/spi.c ****     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -298,7 +298,7 @@ ARM GAS  /tmp/cceAjxVH.s 			page 1
  182 003c 5B69     		ldr	r3, [r3, #20]
  183 003e 03F40033 		and	r3, r3, #131072
  184 0042 0293     		str	r3, [sp, #8]
-ARM GAS  /tmp/cceAjxVH.s 			page 6
+ARM GAS  /tmp/ccbBaz0X.s 			page 6
 
 
   76:Core/Src/spi.c ****     /**SPI1 GPIO Configuration
@@ -358,7 +358,7 @@ ARM GAS  /tmp/cceAjxVH.s 			page 1
  227              		.thumb_func
  228              		.fpu fpv4-sp-d16
  230              	HAL_SPI_MspDeInit:
-ARM GAS  /tmp/cceAjxVH.s 			page 7
+ARM GAS  /tmp/ccbBaz0X.s 			page 7
 
 
  231              	.LVL7:
@@ -418,7 +418,7 @@ ARM GAS  /tmp/cceAjxVH.s 			page 1
  111:Core/Src/spi.c **** 
  260              		.loc 1 111 5 view .LVU74
  261 0016 E021     		movs	r1, #224
-ARM GAS  /tmp/cceAjxVH.s 			page 8
+ARM GAS  /tmp/ccbBaz0X.s 			page 8
 
 
  262 0018 4FF09040 		mov	r0, #1207959552
@@ -456,22 +456,22 @@ ARM GAS  /tmp/cceAjxVH.s 			page 1
  292              		.file 7 "Drivers/STM32F3xx_HAL_Driver/Inc/stm32f3xx_hal_spi.h"
  293              		.file 8 "Core/Inc/main.h"
  294              		.file 9 "Core/Inc/spi.h"
-ARM GAS  /tmp/cceAjxVH.s 			page 9
+ARM GAS  /tmp/ccbBaz0X.s 			page 9
 
 
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 spi.c
-     /tmp/cceAjxVH.s:18     .text.MX_SPI1_Init:0000000000000000 $t
-     /tmp/cceAjxVH.s:26     .text.MX_SPI1_Init:0000000000000000 MX_SPI1_Init
-     /tmp/cceAjxVH.s:106    .text.MX_SPI1_Init:0000000000000044 $d
-     /tmp/cceAjxVH.s:112    .text.HAL_SPI_MspInit:0000000000000000 $t
-     /tmp/cceAjxVH.s:119    .text.HAL_SPI_MspInit:0000000000000000 HAL_SPI_MspInit
-     /tmp/cceAjxVH.s:218    .text.HAL_SPI_MspInit:0000000000000064 $d
-     /tmp/cceAjxVH.s:223    .text.HAL_SPI_MspDeInit:0000000000000000 $t
-     /tmp/cceAjxVH.s:230    .text.HAL_SPI_MspDeInit:0000000000000000 HAL_SPI_MspDeInit
-     /tmp/cceAjxVH.s:272    .text.HAL_SPI_MspDeInit:0000000000000024 $d
-     /tmp/cceAjxVH.s:283    .bss.hspi1:0000000000000000 hspi1
-     /tmp/cceAjxVH.s:279    .bss.hspi1:0000000000000000 $d
+     /tmp/ccbBaz0X.s:18     .text.MX_SPI1_Init:0000000000000000 $t
+     /tmp/ccbBaz0X.s:26     .text.MX_SPI1_Init:0000000000000000 MX_SPI1_Init
+     /tmp/ccbBaz0X.s:106    .text.MX_SPI1_Init:0000000000000044 $d
+     /tmp/ccbBaz0X.s:112    .text.HAL_SPI_MspInit:0000000000000000 $t
+     /tmp/ccbBaz0X.s:119    .text.HAL_SPI_MspInit:0000000000000000 HAL_SPI_MspInit
+     /tmp/ccbBaz0X.s:218    .text.HAL_SPI_MspInit:0000000000000064 $d
+     /tmp/ccbBaz0X.s:223    .text.HAL_SPI_MspDeInit:0000000000000000 $t
+     /tmp/ccbBaz0X.s:230    .text.HAL_SPI_MspDeInit:0000000000000000 HAL_SPI_MspDeInit
+     /tmp/ccbBaz0X.s:272    .text.HAL_SPI_MspDeInit:0000000000000024 $d
+     /tmp/ccbBaz0X.s:283    .bss.hspi1:0000000000000000 hspi1
+     /tmp/ccbBaz0X.s:279    .bss.hspi1:0000000000000000 $d
 
 UNDEFINED SYMBOLS
 HAL_SPI_Init
